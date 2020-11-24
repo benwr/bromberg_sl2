@@ -1,7 +1,7 @@
-# Cayley Hashing
+# Bromberg SL₂ Homomorphic Hashing
 
-This is an implementation of the hash function presented in the paper
-["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
+This is an implementation of the Tillich-Zémor-style hash function
+presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
 ](https://link.springer.com/article/10.1007%2Fs00233-015-9766-5) by
 Bromberg, Shpilrain, and Vdovina.
 
@@ -49,6 +49,7 @@ homomorphism respecting string concatenation, written in a low-level
 language. While there are [a](https://github.com/srijs/hwsl2-core)
 [few](https://github.com/nspcc-dev/tzhash)
 [implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
-of related algorithms, e.g. the venerable
-["Hashing with SL₂"](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
+of related algorithms, e.g. the venerable [but broken]() Tillich-Zémor hash,
+from ["Hashing with SL₂"
+](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
 none of them fulfill the above desiderata.

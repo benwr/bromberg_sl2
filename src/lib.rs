@@ -77,6 +77,8 @@ const fn mod_p_round(n: U256) -> U256 {
 }
 
 const fn mod_p(n: U256) -> u128 {
+    // algorithm as described by Dresdenboy in "Fast calculations modulo small mersenne primes like
+    // M61" at https://www.mersenneforum.org/showthread.php?t=1955
     let n1 = mod_p_round(n); // n1 is at most 130 bits wide
     let n2 = mod_p_round(n1); // n2 is at most 128 bits wide
     let n3 = mod_p_round(n2); // n3 is at most 127 bits wide
@@ -93,11 +95,11 @@ const fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     ])
 }
 
-pub trait CayleyHashable {
+pub trait BrombergHashable {
     fn cayley_hash(x: Self) -> HashMatrix;
 }
 
-impl CayleyHashable for bool {
+impl BrombergHashable for bool {
     fn cayley_hash(b: bool) -> HashMatrix {
         match b {
             true => A,
@@ -106,9 +108,9 @@ impl CayleyHashable for bool {
     }
 }
 
-impl CayleyHashable for u8 {
+impl BrombergHashable for u8 {
     fn cayley_hash(mut u: u8) -> HashMatrix {
-        // TODO this should probably be a GLUT instead
+        // TODO this should be a GLUT instead
         let mut res = I;
         for _ in 0..8 {
             res *= if (u & 0b1000_0000) == 0 { B } else { A };
@@ -147,5 +149,6 @@ mod tests {
         assert_eq!(HashMatrix([0, 1, 1, 0]) * HashMatrix([2, 0, 0, 2]), HashMatrix([0, 2, 2, 0]));
         assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P, 0, 0, P]), HashMatrix([0, 0, 0, 0]));
         assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P + 1, P + 5, 2, P]), HashMatrix([1, 5, 2, 0]));
+        assert_eq!(HashMatrix([P + 1, P + 3, P + 4, P + 5]) * HashMatrix([P + 1, P, P, P + 1]), HashMatrix([1, 3, 4, 5]));
     }
 }
