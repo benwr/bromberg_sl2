@@ -1,0 +1,10 @@
+[package]
+name = "cayley_hash"
+version = "0.1.0"
+authors = ["Ben Weinstein-Raun <root@benwr.net>"]
+edition = "2018"
+
+[dependencies]
+
+[dev-dependencies]
+quickcheck = "0.9.2"
