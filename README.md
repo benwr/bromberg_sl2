@@ -47,7 +47,8 @@ homomorphism respecting string concatenation, written in a low-level
 language. While there are [a](https://github.com/srijs/hwsl2-core)
 [few](https://github.com/nspcc-dev/tzhash)
 [implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
-of related algorithms, e.g. the venerable [but broken]() Tillich-Zémor hash,
+of related algorithms, e.g. the venerable [but broken
+](https://link.springer.com/chapter/10.1007/978-3-642-19574-7_20) Tillich-Zémor hash,
 from ["Hashing with SL₂"
 ](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
 none of them fulfill the above desiderata.
