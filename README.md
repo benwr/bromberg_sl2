@@ -1,24 +1,24 @@
-# Bromberg SL₂ Homomorphic Hashing
+# Bromberg-Shpilrain-Vdovina SL₂ Homomorphic Hashing
 
 This is an implementation of the Tillich-Zémor-style hash function
 presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
 ](https://link.springer.com/article/10.1007%2Fs00233-015-9766-5) by
 Bromberg, Shpilrain, and Vdovina.
 
-> ## WARNING
+> ### Warning
 > 
-> This module is not produced by cryptography experts, but by some
-> rando. Furthermore, the algorithm was published in 2017, and is
-> itself not at all battle-tested. Only use this library if you either
-> (a) know what you're doing and have read and understood our code,
-> and/or (b) are building something that does not rely heavily on the
-> cryptographic properties of the hash function.
->
+> This module is not produced by cryptography experts, but by
+> [some random guy](https://benwr.net). Furthermore, the algorithm
+> was published in 2017, and is itself not at all battle-tested. Only
+> use this library if you either (a) know what you're doing and have
+> read and understood our code, and/or (b) are building something that
+> does not rely heavily on the cryptographic properties of the hash
+> function.
+> 
 > If you _are_ a cryptography expert, we welcome any bug reports or
 > pull requests! We also welcome them if you're not a cryptography
 > expert; this library is quite simple, and should be easy to grok
 > over a coffee with a copy of the paper linked above in hand.
-
 
 # What is this library for?
 
@@ -31,16 +31,42 @@ This property is especially useful for applications where some very
 long string may be constructed via many different routes, but you'd
 nonetheless like to be able to quickly rule out unequal strings.
 
-H has some other useful properties, and is in some limited but
+It also allows you to hash _parts_ of your data as you acquire them,
+and then merge them later in whatever order is convenient. This allows
+for very flexible hashing schemes.
+
+H has some other cool properties, and is in some limited but
 potentially-useful sense "provably secure". See Bromberg et al. for
 details.
+
+# How to use this library
+
+This library provides the means to construct `HashMatrix`es, using
+implementations of `BrombergHashable`. These hashes can be compared,
+or serialized to hex strings using `to_hex`.
+
+```
+use bromberg_sl2::*;
+assert_eq!("hello, world!".bromberg_hash().to_hex(),
+  "21fe256b03546bdbc5b1c879d47ff7363df56837eb1782ebbc4bb3f9247a4ddb40679d4b5f4a057767f7147e252e4f5b0fa5");
+```
+
+Hashes may also be composed, using the `*` operator:
+
+```
+use bromberg_sl2::*;
+assert_eq!(
+  "hello, ".bromberg_hash() * "world!".bromberg_hash(),
+  "hello, world!".bromberg_hash()
+);
+```
 
 # Technical Details
 
 We use the A(2) and B(2) matrices as generators of SL₂, and
-p = 2^127 - 1 for fast modular arithmetic.
+p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
-There are not yet any benchmarks, and we have not yet attempted to
+There are not yet any benchmarks, and we have not yet attempted toCJJK
 optimize this library at all. However, we needed an
 architecture-agnostic cryptographic hash procedure with a monoid
 homomorphism respecting string concatenation, written in a low-level
