@@ -67,7 +67,7 @@ assert_eq!(
 We use the A(2) and B(2) matrices as generators of SL₂, and
 p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
-There are not yet any benchmarks, and we have not yet attempted toCJJK
+There are not yet any benchmarks, and we have not yet attempted to
 optimize this library at all. However, we needed an
 architecture-agnostic cryptographic hash procedure with a monoid
 homomorphism respecting string concatenation, written in a low-level
