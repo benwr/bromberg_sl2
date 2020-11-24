@@ -1,154 +1,106 @@
-use std::ops::{Mul, MulAssign};
-use std::fmt::Debug;
+/*!
+This is an implementation of the Tillich-Zémor-style hash function
+presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
+](https://link.springer.com/article/10.1007%2Fs00233-015-9766-5) by
+Bromberg, Shpilrain, and Vdovina.
 
-// big-end first; does this matter?
-type U256 = [u128; 2];
+> ### Warning
+> 
+> This module is not produced by cryptography experts, but by
+> [some random guy](https://benwr.net). Furthermore, the algorithm
+> was published in 2017, and is itself not at all battle-tested. Only
+> use this library if you either (a) know what you're doing and have
+> read and understood our code, and/or (b) are building something that
+> does not rely heavily on the cryptographic properties of the hash
+> function.
+> 
+> If you _are_ a cryptography expert, we welcome any bug reports or
+> pull requests! We also welcome them if you're not a cryptography
+> expert; this library is quite simple, and should be easy to grok
+> over a coffee with a copy of the paper linked above in hand.
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct HashMatrix([u128; 4]);
+# What is this library for?
 
-impl Mul for HashMatrix {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        matmul(self, rhs)
-    }
-}
-impl MulAssign for HashMatrix {
-    fn mul_assign(&mut self, rhs: HashMatrix) {
-        *self = *self * rhs
-    }
-}
+This library implements a putatively-strong hash function H with the
+useful property that it gives a monoid homomorphism. This means there
+is a cheap operation `*` such that given strings `s1` and `s2`,
+`H(s1 ++ s2) = H(s1) * H(s2)`.
 
-const A: HashMatrix = HashMatrix([
-    1, 2,
-    0, 1,
-]);
+This property is especially useful for applications where some very
+long string may be constructed via many different routes, but you'd
+nonetheless like to be able to quickly rule out unequal strings.
 
-const B: HashMatrix = HashMatrix([
-    1, 0,
-    2, 1,
-]);
+It also allows you to hash _parts_ of your data as you acquire them,
+and then merge them later in whatever order is convenient. This allows
+for very flexible hashing schemes.
 
-const I: HashMatrix = HashMatrix([
-    1, 0,
-    0, 1,
-]);
+H has some other cool properties, and is in some limited but
+potentially-useful sense "provably secure". See Bromberg et al. for
+details.
 
-const P: u128 = (1 << 127) - 1;
+# How to use this library
 
-// lower 64 bits
-const fn lo_mask(x: u128) -> u128 {
-    x & 0xffff_ffff_ffff_ffff
-}
+This library provides the means to construct
+[`HashMatrix`](struct.HashMatrix.html)es, using implementations of
+[`BrombergHashable`](trait.BrombergHashable.html). These hashes
+can be compared, or serialized to hex strings using
+[`to_hex`](struct.HashMatrix.html#method.to_hex).
 
-const fn mul(x: u128, y: u128) -> U256 {
-    // this could probably be made much faster, though I'm not sure.
-    // also I'm not 100% sure it's bug-free; I'm writing it at 1:30am.
-    let xhi = x >> 64;
-    let yhi = y >> 64;
-    let xlo = lo_mask(x);
-    let ylo = lo_mask(y); 
+```
+use bromberg_sl2::*;
+assert_eq!("hello, world!".bromberg_hash().to_hex(),
+  "21fe256b03546bdbc5b1c879d47ff7363df56837eb1782ebbc4bb3f9247a4ddb40679d4b5f4a057767f7147e252e4f5b0fa5");
+```
 
-    let xhi_ylo = xhi * ylo;
-    let yhi_xlo = yhi * xlo;
+Hashes may also be composed, using the `*` operator:
 
-    let (lo_sum_1, carry_bool_1) = (xhi_ylo << 64).overflowing_add(yhi_xlo << 64);
-    let (lo_sum_2, carry_bool_2) = lo_sum_1.overflowing_add(xlo * ylo);
-    let carry = carry_bool_1 as u128 + carry_bool_2 as u128;
+```
+use bromberg_sl2::*;
+assert_eq!(
+  "hello, ".bromberg_hash() * "world!".bromberg_hash(),
+  "hello, world!".bromberg_hash()
+);
+```
 
-    [(xhi * yhi) + (xhi_ylo >> 64) + (yhi_xlo >> 64) + carry, lo_sum_2]
-}
+# Technical Details
 
-const fn add(x: U256, y: U256) -> U256 {
-    // NOTE: x and y are guaranteed to be <=
-    // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I thinkwe don't have to worry about carries out of here.
-    let (low, carry) = x[1].overflowing_add(y[1]);
-    let high = x[0] + y[0] + carry as u128;
-    [high, low]
-}
+We use the A(2) and B(2) matrices as generators of SL₂, and
+p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
-const fn mod_p_round(n: U256) -> U256 {
-    let low_bits = n[1] & P; // 127 bits of input
-    let intermediate_bits = (n[0] << 1) | (n[1] >> 127); // 128 of the 129 additional bits
-    let high_bit = n[0] >> 127;
-    let (sum, carry_bool) = low_bits.overflowing_add(intermediate_bits);
-    [carry_bool as u128 + high_bit, sum]
-}
+There are not yet any benchmarks, and we have not yet attempted toCJJK
+optimize this library at all. However, we needed an
+architecture-agnostic cryptographic hash procedure with a monoid
+homomorphism respecting string concatenation, written in a low-level
+language. While there are [a](https://github.com/srijs/hwsl2-core)
+[few](https://github.com/nspcc-dev/tzhash)
+[implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
+of related algorithms, e.g. the venerable [but broken
+](https://link.springer.com/chapter/10.1007/978-3-642-19574-7_20) Tillich-Zémor hash,
+from ["Hashing with SL₂"
+](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
+none of them fulfill the above desiderata.
+*/
 
-const fn mod_p(n: U256) -> u128 {
-    // algorithm as described by Dresdenboy in "Fast calculations modulo small mersenne primes like
-    // M61" at https://www.mersenneforum.org/showthread.php?t=1955
-    let n1 = mod_p_round(n); // n1 is at most 130 bits wide
-    let n2 = mod_p_round(n1); // n2 is at most 128 bits wide
-    let n3 = mod_p_round(n2); // n3 is at most 127 bits wide
+pub use crate::hash_matrix::{HashMatrix, matmul};
 
-    ((n3[1] + 1) & P).saturating_sub(1)
-}
+use crate::lookup_table::BYTE_LOOKUPS;
 
-const fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
-    HashMatrix([
-        mod_p(add(mul(a.0[0b00], b.0[0b00]), mul(a.0[0b01], b.0[0b10]))),
-        mod_p(add(mul(a.0[0b00], b.0[0b01]), mul(a.0[0b01], b.0[0b11]))),
-        mod_p(add(mul(a.0[0b10], b.0[0b00]), mul(a.0[0b11], b.0[0b10]))),
-        mod_p(add(mul(a.0[0b10], b.0[0b01]), mul(a.0[0b11], b.0[0b11]))),
-    ])
-}
+use crate::hash_matrix::I;
 
+mod hash_matrix;
+mod lookup_table;
+
+/// Things that can be hashed using this crate.
 pub trait BrombergHashable {
-    fn cayley_hash(x: Self) -> HashMatrix;
+    fn bromberg_hash(self) -> HashMatrix;
 }
 
-impl BrombergHashable for bool {
-    fn cayley_hash(b: bool) -> HashMatrix {
-        match b {
-            true => A,
-            false => B,
+impl<T: AsRef<[u8]>> BrombergHashable for T {
+    fn bromberg_hash(self) -> HashMatrix {
+        let mut acc = I;
+        for b in self.as_ref() {
+            acc = acc * BYTE_LOOKUPS[*b as usize];
         }
-    }
-}
-
-impl BrombergHashable for u8 {
-    fn cayley_hash(mut u: u8) -> HashMatrix {
-        // TODO this should be a GLUT instead
-        let mut res = I;
-        for _ in 0..8 {
-            res *= if (u & 0b1000_0000) == 0 { B } else { A };
-            u <<= 1;
-        }
-        res
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn it_works() {
-        assert_eq!(mul(1 << 127, 2), [1,0]);
-        assert_eq!(mul(1 << 127, 1 << 127), [85070591730234615865843651857942052864, 0]);
-        assert_eq!(mul(4, 4), [0, 16]);
-        assert_eq!(mul((1 << 127) + 4, (1 << 127) + 4), [85070591730234615865843651857942052868, 16]);
-
-        assert_eq!(mod_p([0, P]), 0);
-        assert_eq!(mod_p([0, P + 1]), 1);
-        assert_eq!(mod_p([0, 0]), 0);
-        assert_eq!(mod_p([0, 1]), 1);
-        assert_eq!(mod_p([0, P - 1]), P - 1);
-        assert_eq!(mod_p([0, 1 << 127]), 1);
-        assert_eq!(mod_p([1, P]), 2);
-        assert_eq!(mod_p([1, 0]), 2);
-        assert_eq!(mod_p([P, 0]), 0);
-        assert_eq!(mod_p([P, P]), 0);
-        assert_eq!(mod_p([0, u128::MAX]), 1);
-        
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([1, 0, 0, 1]), HashMatrix([1, 0, 0, 1]));
-        assert_eq!(HashMatrix([2, 0, 0, 2]) * HashMatrix([2, 0, 0, 2]), HashMatrix([4, 0, 0, 4]));
-        assert_eq!(HashMatrix([0, 1, 1, 0]) * HashMatrix([2, 0, 0, 2]), HashMatrix([0, 2, 2, 0]));
-        assert_eq!(HashMatrix([0, 1, 1, 0]) * HashMatrix([2, 0, 0, 2]), HashMatrix([0, 2, 2, 0]));
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P, 0, 0, P]), HashMatrix([0, 0, 0, 0]));
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P + 1, P + 5, 2, P]), HashMatrix([1, 5, 2, 0]));
-        assert_eq!(HashMatrix([P + 1, P + 3, P + 4, P + 5]) * HashMatrix([P + 1, P, P, P + 1]), HashMatrix([1, 3, 4, 5]));
+        acc
     }
 }

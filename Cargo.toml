@@ -1,5 +1,5 @@
 [package]
-name = "cayley_hash"
+name = "bromberg_sl2"
 version = "0.1.0"
 authors = ["Ben Weinstein-Raun <root@benwr.net>"]
 edition = "2018"
@@ -7,4 +7,5 @@ edition = "2018"
 [dependencies]
 
 [dev-dependencies]
-quickcheck = "0.9.2"
+quickcheck = "0.9"
+num-bigint = "0.3"
