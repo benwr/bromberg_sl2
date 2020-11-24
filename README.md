@@ -23,11 +23,9 @@ Bromberg, Shpilrain, and Vdovina.
 # What is this library for?
 
 This library implements a putatively-strong hash function H with the
-following useful property:
-
-For any strings `s1` and `s2`, the hash of their concatenation,
-`H(s1 ++ s2)` can be quickly computed from their respective hashes
-`H(s1)` and `H(s2)`. In this sense it is a "homomorphic hash function".
+useful property that it gives a monoid homomorphism. This means there
+is a cheap operation `*` such that given strings `s1` and `s2`,
+`H(s1 ++ s2) = H(s1) * H(s2)`.
 
 This property is especially useful for applications where some very
 long string may be constructed via many different routes, but you'd
