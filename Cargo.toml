@@ -3,6 +3,7 @@ name = "bromberg_sl2"
 version = "0.1.0"
 authors = ["Ben Weinstein-Raun <root@benwr.net>"]
 edition = "2018"
+license = "CC0"
 
 [dependencies]
 

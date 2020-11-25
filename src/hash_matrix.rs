@@ -26,17 +26,17 @@ impl Mul for HashMatrix {
     }
 }
 
-pub const A: HashMatrix = HashMatrix([
+pub(crate) const A: HashMatrix = HashMatrix([
     1, 2,
     0, 1,
 ]);
 
-pub const B: HashMatrix = HashMatrix([
+pub(crate) const B: HashMatrix = HashMatrix([
     1, 0,
     2, 1,
 ]);
 
-pub const I: HashMatrix = HashMatrix([
+pub(crate) const I: HashMatrix = HashMatrix([
     1, 0,
     0, 1,
 ]);
