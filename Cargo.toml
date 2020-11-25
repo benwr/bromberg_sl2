@@ -1,5 +1,6 @@
 [package]
 name = "bromberg_sl2"
+description = "Cayley hashing as in 'Navigating in the Cayley Graph of SL₂(𝔽ₚ)'"
 version = "0.1.0"
 authors = ["Ben Weinstein-Raun <root@benwr.net>"]
 edition = "2018"
