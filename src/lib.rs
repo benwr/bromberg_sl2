@@ -92,11 +92,11 @@ mod lookup_table;
 
 /// Things that can be hashed using this crate.
 pub trait BrombergHashable {
-    fn bromberg_hash(self) -> HashMatrix;
+    fn bromberg_hash(&self) -> HashMatrix;
 }
 
 impl<T: AsRef<[u8]>> BrombergHashable for T {
-    fn bromberg_hash(self) -> HashMatrix {
+    fn bromberg_hash(&self) -> HashMatrix {
         let mut acc = I;
         for b in self.as_ref() {
             acc = acc * BYTE_LOOKUPS[*b as usize];
