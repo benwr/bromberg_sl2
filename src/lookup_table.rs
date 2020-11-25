@@ -1,4 +1,4 @@
-use crate::hash_matrix::{A, B, HashMatrix, matmul};
+use crate::hash_matrix::{A, B, HashMatrix, constmatmul};
 
 const fn mul8(
     a: HashMatrix,
@@ -10,16 +10,16 @@ const fn mul8(
     g: HashMatrix,
     h: HashMatrix
 ) -> HashMatrix {
-    matmul(
-        matmul(matmul(a, b), matmul(c, d)),
-        matmul(matmul(e, f), matmul(g, h))
+    constmatmul(
+        constmatmul(constmatmul(a, b), constmatmul(c, d)),
+        constmatmul(constmatmul(e, f), constmatmul(g, h))
    )
 }
 
 
 // TODO perhaps this should be a macro to make it clearer
 // that it's correct
-pub(crate) const BYTE_LOOKUPS: [HashMatrix; 256] = [
+pub(crate) static BYTE_LOOKUPS: [HashMatrix; 256] = [
     mul8(B, B, B, B, B, B, B, B),
     mul8(B, B, B, B, B, B, B, A),
     mul8(B, B, B, B, B, B, A, B),

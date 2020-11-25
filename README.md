@@ -66,11 +66,12 @@ assert_eq!(
 We use the A(2) and B(2) matrices as generators of SL₂, and
 p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
-There are not yet any benchmarks, and we have not yet attempted to
-optimize this library at all. However, we needed an
-architecture-agnostic cryptographic hash procedure with a monoid
-homomorphism respecting string concatenation, written in a low-level
-language. While there are [a](https://github.com/srijs/hwsl2-core)
+We have not yet attempted to seriously optimize this library at all,
+and performance is a secondary goal. As of right now our procedure is
+about 1/6 as fast as SHA3-512. We needed an architecture-agnostic
+cryptographic hash procedure with a monoid homomorphism respecting
+string concatenation, written in a low-level language. While there are
+[a](https://github.com/srijs/hwsl2-core)
 [few](https://github.com/nspcc-dev/tzhash)
 [implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
 of related algorithms, e.g. the venerable [but broken

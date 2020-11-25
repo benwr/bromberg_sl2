@@ -11,9 +11,22 @@ keywords = ["hashing", "sl2", "homomorphic", "monoidal", "tillich-zemor"]
 
 [profile.release]
 lto = true
+opt-level = 3
+codegen-units = 1
+
+[profile.bench]
+lto = true
+opt-level = 3
+codegen-units = 1
 
 [dependencies]
 
 [dev-dependencies]
-quickcheck = "0.9"
+criterion = "0.3"
 num-bigint = "0.3"
+quickcheck = "0.9"
+sha3 = "0.9"
+
+[[bench]]
+name = "compare_with_sha"
+harness = false
