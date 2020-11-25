@@ -11,7 +11,9 @@ use num_bigint::*;
 #[cfg(test)]
 impl ToBigUint for U256 {
     fn to_biguint(&self) -> Option<BigUint> {
-        Some(self.0[0].to_biguint().unwrap() * (1.to_biguint().unwrap() << 128) + self.0[1].to_biguint().unwrap())
+        Some(self.0[0].to_biguint().unwrap()
+             * (1.to_biguint().unwrap() << 128)
+             + self.0[1].to_biguint().unwrap())
     }
 }
 
@@ -27,7 +29,8 @@ pub struct HashMatrix([u128; 4]);
 impl HashMatrix {
     /// Produce a hex digest of the hash. This will be 128 hex digits.
     pub fn to_hex(self) -> String {
-        format!("{:016x}{:016x}{:016x}{:016x}", self.0[0], self.0[1], self.0[2], self.0[3])
+        format!("{:016x}{:016x}{:016x}{:016x}",
+                self.0[0], self.0[1], self.0[2], self.0[3])
     }
 
 }
@@ -97,8 +100,9 @@ const fn mod_p_round(n: U256) -> U256 {
 }
 
 const fn mod_p(n: U256) -> u128 {
-    // algorithm as described by Dresdenboy in "Fast calculations modulo small mersenne primes like
-    // M61" at https://www.mersenneforum.org/showthread.php?t=1955
+    // algorithm as described by Dresdenboy in "Fast calculations
+    // modulo small mersenne primes like M61" at
+    // https://www.mersenneforum.org/showthread.php?t=1955
     let n1 = mod_p_round(n); // n1 is at most 130 bits wide
     let n2 = mod_p_round(n1); // n2 is at most 128 bits wide
     let n3 = mod_p_round(n2); // n3 is at most 127 bits wide
@@ -124,9 +128,11 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(mul(1 << 127, 2), U256([1,0]));
-        assert_eq!(mul(1 << 127, 1 << 127), U256([85070591730234615865843651857942052864, 0]));
+        assert_eq!(mul(1 << 127, 1 << 127),
+            U256([85070591730234615865843651857942052864, 0]));
         assert_eq!(mul(4, 4), U256([0, 16]));
-        assert_eq!(mul((1 << 127) + 4, (1 << 127) + 4), U256([85070591730234615865843651857942052868, 16]));
+        assert_eq!(mul((1 << 127) + 4, (1 << 127) + 4),
+            U256([85070591730234615865843651857942052868, 16]));
 
         assert_eq!(mod_p(U256([0, P])), 0);
         assert_eq!(mod_p(U256([0, P + 1])), 1);
@@ -140,13 +146,27 @@ mod tests {
         assert_eq!(mod_p(U256([P, P])), 0);
         assert_eq!(mod_p(U256([0, u128::MAX])), 1);
 
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([1, 0, 0, 1]), HashMatrix([1, 0, 0, 1]));
-        assert_eq!(HashMatrix([2, 0, 0, 2]) * HashMatrix([2, 0, 0, 2]), HashMatrix([4, 0, 0, 4]));
-        assert_eq!(HashMatrix([0, 1, 1, 0]) * HashMatrix([2, 0, 0, 2]), HashMatrix([0, 2, 2, 0]));
-        assert_eq!(HashMatrix([0, 1, 1, 0]) * HashMatrix([2, 0, 0, 2]), HashMatrix([0, 2, 2, 0]));
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P, 0, 0, P]), HashMatrix([0, 0, 0, 0]));
-        assert_eq!(HashMatrix([1, 0, 0, 1]) * HashMatrix([P + 1, P + 5, 2, P]), HashMatrix([1, 5, 2, 0]));
-        assert_eq!(HashMatrix([P + 1, P + 3, P + 4, P + 5]) * HashMatrix([P + 1, P, P, P + 1]), HashMatrix([1, 3, 4, 5]));
+        assert_eq!(HashMatrix([1, 0, 0, 1])
+                   * HashMatrix([1, 0, 0, 1]),
+                   HashMatrix([1, 0, 0, 1]));
+        assert_eq!(HashMatrix([2, 0, 0, 2])
+                   * HashMatrix([2, 0, 0, 2]),
+                   HashMatrix([4, 0, 0, 4]));
+        assert_eq!(HashMatrix([0, 1, 1, 0])
+                   * HashMatrix([2, 0, 0, 2]),
+                   HashMatrix([0, 2, 2, 0]));
+        assert_eq!(HashMatrix([0, 1, 1, 0])
+                   * HashMatrix([2, 0, 0, 2]),
+                   HashMatrix([0, 2, 2, 0]));
+        assert_eq!(HashMatrix([1, 0, 0, 1])
+                   * HashMatrix([P, 0, 0, P]),
+                   HashMatrix([0, 0, 0, 0]));
+        assert_eq!(HashMatrix([1, 0, 0, 1])
+                   * HashMatrix([P + 1, P + 5, 2, P]),
+                   HashMatrix([1, 5, 2, 0]));
+        assert_eq!(HashMatrix([P + 1, P + 3, P + 4, P + 5])
+                   * HashMatrix([P + 1, P, P, P + 1]),
+                   HashMatrix([1, 3, 4, 5]));
     }
 
     use quickcheck::*;
@@ -166,7 +186,8 @@ mod tests {
             use num_bigint::*;
             let res = mul(a, b);
 
-            a.to_biguint().unwrap() * b.to_biguint().unwrap() == res.to_biguint().unwrap()
+            a.to_biguint().unwrap() * b.to_biguint().unwrap()
+                == res.to_biguint().unwrap()
         }
     }
 
@@ -186,10 +207,18 @@ mod tests {
             let res = mod_p(add(mul(a, b), mul(c, d)));
 
             let big_res = (a.to_biguint().unwrap() * b.to_biguint().unwrap()
-                + c.to_biguint().unwrap() * d.to_biguint().unwrap()) % P.to_biguint().unwrap();
+                + c.to_biguint().unwrap() * d.to_biguint().unwrap())
+                % P.to_biguint().unwrap();
 
             res.to_biguint().unwrap() == big_res
         }
     }
 
+    quickcheck! {
+        fn collision_search(a: Vec<u8>, b: Vec<u8>) -> bool {
+            let ares = a.bromberg_hash();
+            let bres = b.bromberg_hash();
+            ares != bres || a == b
+        }
+    }
 }

@@ -9,6 +9,9 @@ repository = "https://github.com/benwr/bromberg_sl2"
 categories = ["cryptography", "algorithms"]
 keywords = ["hashing", "sl2", "homomorphic", "monoidal", "tillich-zemor"]
 
+[profile.release]
+lto = true
+
 [dependencies]
 
 [dev-dependencies]
