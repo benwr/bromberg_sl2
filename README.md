@@ -8,7 +8,7 @@ Bromberg, Shpilrain, and Vdovina.
 > ### Warning
 > 
 > This module is not produced by cryptography experts, but by
-> [some random guy](https://benwr.net). Furthermore, the algorithm
+> [some random guy](http://benwr.net). Furthermore, the algorithm
 > was published in 2017, and is itself not at all battle-tested. Only
 > use this library if you either (a) know what you're doing and have
 > read and understood our code, and/or (b) are building something that

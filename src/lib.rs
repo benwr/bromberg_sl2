@@ -5,15 +5,15 @@ presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
 Bromberg, Shpilrain, and Vdovina.
 
 > ### Warning
-> 
+>
 > This module is not produced by cryptography experts, but by
-> [some random guy](https://benwr.net). Furthermore, the algorithm
+> [some random guy](http://benwr.net). Furthermore, the algorithm
 > was published in 2017, and is itself not at all battle-tested. Only
 > use this library if you either (a) know what you're doing and have
 > read and understood our code, and/or (b) are building something that
 > does not rely heavily on the cryptographic properties of the hash
 > function.
-> 
+>
 > If you _are_ a cryptography expert, we welcome any bug reports or
 > pull requests! We also welcome them if you're not a cryptography
 > expert; this library is quite simple, and should be easy to grok
