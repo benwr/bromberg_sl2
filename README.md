@@ -68,7 +68,7 @@ p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
 We have not yet attempted to seriously optimize this library at all,
 and performance is a secondary goal. As of right now our procedure is
-about 1/6 as fast as SHA3-512. We needed an architecture-agnostic
+about 1/5 as fast as SHA3-512. We needed an architecture-agnostic
 cryptographic hash procedure with a monoid homomorphism respecting
 string concatenation, written in a low-level language. While there are
 [a](https://github.com/srijs/hwsl2-core)

@@ -58,13 +58,12 @@ pub(crate) static I: HashMatrix = HashMatrix([
     0, 1,
 ]);
 
-const P: u128 = (1 << 127) - 1;
+const SUCC_P: u128 = 1 << 127;
+const P: u128 = SUCC_P - 1;
 
 fn mul(x: u128, y: u128) -> U256 {
     // this could probably be made much faster, though I'm not sure.
     // also I'm not 100% sure it's bug-free; I'm writing it at 1:30am.
-    let mut acc = U256([0, 0]);
-
     let xlo = x & 0xffff_ffff_ffff_ffff;
     let ylo = y & 0xffff_ffff_ffff_ffff;
 
@@ -115,14 +114,6 @@ const fn constadd(x: U256, y: U256) -> U256 {
     U256([high, low])
 }
 
-fn mod_p_round(n: U256) -> U256 {
-    let low_bits = n.0[1] & P; // 127 bits of input
-    let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
-    let high_bit = n.0[0] >> 127;
-    let (sum, carry_bool) = low_bits.overflowing_add(intermediate_bits);
-    U256([carry_bool as u128 + high_bit, sum])
-}
-
 const fn constmod_p_round(n: U256) -> U256 {
     let low_bits = n.0[1] & P; // 127 bits of input
     let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
@@ -142,15 +133,51 @@ const fn constmod_p(n: U256) -> u128 {
     ((n3.0[1] + 1) & P).saturating_sub(1)
 }
 
-fn mod_p(n: U256) -> u128 {
-    // algorithm as described by Dresdenboy in "Fast calculations
-    // modulo small mersenne primes like M61" at
-    // https://www.mersenneforum.org/showthread.php?t=1955
-    let n1 = mod_p_round(n); // n1 is at most 130 bits wide
-    let n2 = mod_p_round(n1); // n2 is at most 128 bits wide
-    let n3 = mod_p_round(n2); // n3 is at most 127 bits wide
+// algorithm as described by Dresdenboy in "Fast calculations
+// modulo small mersenne primes like M61" at
+// https://www.mersenneforum.org/showthread.php?t=1955
+// I tried using a handwritten version of this that avoided the U256s,
+// but it was like half as fast somehow.
+fn mod_p_round_1(n: U256) -> U256 {
+    let low_bits = n.0[1] & P; // 127 bits of input
+    let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
+    let high_bit = n.0[0] >> 127;
+    let (sum, carry_bool) = low_bits.overflowing_add(intermediate_bits);
+    U256([carry_bool as u128 + high_bit, sum])
+}
 
-    ((n3.0[1] + 1) & P).saturating_sub(1)
+fn mod_p_round_2(n: U256) -> U256 {
+    let low_bits = n.0[1] & P; // 127 bits of input
+    let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
+    U256([0, low_bits + intermediate_bits])
+}
+
+fn mod_p_round_3(n: U256) -> U256 {
+    let low_bits = n.0[1] & P; // 127 bits of input
+    let intermediate_bit = n.0[1] >> 127; // 128 of the 129 additional bits
+    U256([0, low_bits + intermediate_bit])
+}
+
+fn mod_p(mut n: U256) -> u128 {
+    // n is at most 255 bits wide
+    if n.0[0] != 0 {
+        n = mod_p_round_1(n);
+    }
+    // n is at most 129 bits wide
+    if n.0[0] != 0 || (n.0[1] > P) {
+        n = mod_p_round_2(n);
+    }
+    // n is at most 128 bits wide
+    if n.0[1] > P {
+        n = mod_p_round_3(n);
+    }
+    // n is at most 127 bits wide
+    
+    if n.0[1] == P {
+        0
+    } else {
+        n.0[1]
+    }
 }
 
 /// Identical to the `*` operator; exposed to provide a `const` version.
