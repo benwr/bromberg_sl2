@@ -84,7 +84,7 @@ none of them fulfill the above desiderata.
 
 pub use crate::hash_matrix::{HashMatrix, constmatmul};
 
-use crate::lookup_table::BYTE_LOOKUPS;
+use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};
 
 use crate::hash_matrix::I;
 
@@ -95,11 +95,24 @@ mod lookup_table;
 /// stream and I'll give you a hash.
 pub fn hash(bytes: &[u8]) -> HashMatrix {
     let mut acc = I;
+    for bs in bytes.chunks(2) {
+        if bs.len() == 2 {
+            acc = acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))];
+        } else {
+            acc = acc * BYTE_LOOKUPS[bs[0] as usize];
+        }
+    }
+    acc
+}
+/*
+pub fn hash(bytes: &[u8]) -> HashMatrix {
+    let mut acc = I;
     for b in bytes {
         acc = acc * BYTE_LOOKUPS[*b as usize];
     }
     acc
 }
+*/
 
 /// Things that can be hashed using this crate.
 pub trait BrombergHashable {

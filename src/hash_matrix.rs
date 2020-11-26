@@ -33,7 +33,6 @@ impl HashMatrix {
         format!("{:016x}{:016x}{:016x}{:016x}",
                 self.0[0], self.0[1], self.0[2], self.0[3])
     }
-
 }
 
 impl Mul for HashMatrix {
@@ -43,12 +42,12 @@ impl Mul for HashMatrix {
     }
 }
 
-pub(crate) static A: HashMatrix = HashMatrix([
+pub(crate) const A: HashMatrix = HashMatrix([
     1, 2,
     0, 1,
 ]);
 
-pub(crate) static B: HashMatrix = HashMatrix([
+pub(crate) const B: HashMatrix = HashMatrix([
     1, 0,
     2, 1,
 ]);
