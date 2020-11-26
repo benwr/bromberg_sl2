@@ -103,11 +103,11 @@ pub fn hash(bytes: &[u8]) -> HashMatrix {
 
 /// Things that can be hashed using this crate.
 pub trait BrombergHashable {
-    fn bromberg_hash(self) -> HashMatrix;
+    fn bromberg_hash(&self) -> HashMatrix;
 }
 
-impl BrombergHashable for &[u8] {
-    fn bromberg_hash(self) -> HashMatrix {
+impl BrombergHashable for [u8] {
+    fn bromberg_hash(&self) -> HashMatrix {
         hash(self)
     }
 }
