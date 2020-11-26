@@ -63,7 +63,6 @@ const P: u128 = SUCC_P - 1;
 
 fn mul(x: u128, y: u128) -> U256 {
     // this could probably be made much faster, though I'm not sure.
-    // also I'm not 100% sure it's bug-free; I'm writing it at 1:30am.
     let xlo = x & 0xffff_ffff_ffff_ffff;
     let ylo = y & 0xffff_ffff_ffff_ffff;
 

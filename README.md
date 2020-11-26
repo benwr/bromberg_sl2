@@ -47,7 +47,7 @@ or serialized to hex strings using `to_hex`.
 
 ```
 use bromberg_sl2::*;
-assert_eq!("hello, world!".bromberg_hash().to_hex(),
+assert_eq!(hash("hello, world!".as_ref()).to_hex(),
   "21fe256b03546bdbc5b1c879d47ff7363df56837eb1782ebbc4bb3f9247a4ddb40679d4b5f4a057767f7147e252e4f5b0fa5");
 ```
 
@@ -56,8 +56,8 @@ Hashes may also be composed, using the `*` operator:
 ```
 use bromberg_sl2::*;
 assert_eq!(
-  "hello, ".bromberg_hash() * "world!".bromberg_hash(),
-  "hello, world!".bromberg_hash()
+  hash("hello, ".as_ref()) * hash("world!".as_ref()),
+  hash("hello, world!".as_ref())
 );
 ```
 
