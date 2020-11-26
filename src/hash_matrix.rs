@@ -254,9 +254,9 @@ mod tests {
         fn composition(a: Vec<u8>, b: Vec<u8>) -> bool {
             let mut a = a;
             let mut b = b;
-            let h1 = a.bromberg_hash() * b.bromberg_hash();
+            let h1 = hash(&a) * hash(&b);
             a.append(&mut b);
-            a.bromberg_hash() == h1
+            hash(&a) == h1
         }
     }
 
@@ -295,8 +295,8 @@ mod tests {
 
     quickcheck! {
         fn collision_search(a: Vec<u8>, b: Vec<u8>) -> bool {
-            let ares = a.bromberg_hash();
-            let bres = b.bromberg_hash();
+            let ares = hash(&a);
+            let bres = hash(&b);
             ares != bres || a == b
         }
     }

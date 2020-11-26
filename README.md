@@ -42,7 +42,7 @@ details.
 # How to use this library
 
 This library provides the means to construct `HashMatrix`es, using
-implementations of `BrombergHashable`. These hashes can be compared,
+`hash()`, which takes a slice of bytes. These hashes can be compared,
 or serialized to hex strings using `to_hex`.
 
 ```

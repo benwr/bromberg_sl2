@@ -41,9 +41,9 @@ details.
 # How to use this library
 
 This library provides the means to construct
-[`HashMatrix`](struct.HashMatrix.html)es, using implementations of
-[`BrombergHashable`](trait.BrombergHashable.html). These hashes
-can be compared, or serialized to hex strings using
+[`HashMatrix`](struct.HashMatrix.html)es, using [`hash`](fn.hash.html),
+which takes a slice of bytes. These hashes can be compared,
+or serialized to hex strings using
 [`to_hex`](struct.HashMatrix.html#method.to_hex).
 
 ```
@@ -102,16 +102,12 @@ pub fn hash(bytes: &[u8]) -> HashMatrix {
 }
 
 /// Things that can be hashed using this crate.
-///
-/// The instance for AsRef<[u8]> is DEPRECATED, since
-/// users may want to choose different ways of hashing
-/// their data than the one implied by AsRef.
 pub trait BrombergHashable {
-    fn bromberg_hash(&self) -> HashMatrix;
+    fn bromberg_hash(self) -> HashMatrix;
 }
 
-impl<T: AsRef<[u8]>> BrombergHashable for T {
-    fn bromberg_hash(&self) -> HashMatrix {
-        hash(self.as_ref())
+impl BrombergHashable for &[u8] {
+    fn bromberg_hash(self) -> HashMatrix {
+        hash(self)
     }
 }
