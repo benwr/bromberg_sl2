@@ -61,7 +61,7 @@ pub(crate) static I: HashMatrix = HashMatrix([
 const SUCC_P: u128 = 1 << 127;
 const P: u128 = SUCC_P - 1;
 
-fn mul(x: u128, y: u128) -> U256 {
+const fn mul(x: u128, y: u128) -> U256 {
     // this could probably be made much faster, though I'm not sure.
     let xlo = x & 0xffff_ffff_ffff_ffff;
     let ylo = y & 0xffff_ffff_ffff_ffff;
@@ -79,57 +79,13 @@ fn mul(x: u128, y: u128) -> U256 {
     U256([(xhi * yhi) + (xhi_ylo >> 64) + (yhi_xlo >> 64) + carry, lo_sum_2])
 }
 
-const fn constmul(x: u128, y: u128) -> U256 {
-    let xhi = x >> 64;
-    let xlo = x & 0xffff_ffff_ffff_ffff;
-    let yhi = y >> 64;
-    let ylo = y & 0xffff_ffff_ffff_ffff;
-
-    let xhi_ylo = xhi * ylo;
-    let yhi_xlo = yhi * xlo;
-
-    let (lo_sum_1, carry_bool_1) = (xhi_ylo << 64).overflowing_add(yhi_xlo << 64);
-    let (lo_sum_2, carry_bool_2) = lo_sum_1.overflowing_add(xlo * ylo);
-    let carry = carry_bool_1 as u128 + carry_bool_2 as u128;
-
-    U256([(xhi * yhi) + (xhi_ylo >> 64) + (yhi_xlo >> 64) + carry, lo_sum_2])
-}
-
-fn add(x: U256, y: U256) -> U256 {
+const fn add(x: U256, y: U256) -> U256 {
     // NOTE: x and y are guaranteed to be <=
     // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I thinkwe don't have to worry about carries out of here.
+    // so I think we don't have to worry about carries out of here.
     let (low, carry) = x.0[1].overflowing_add(y.0[1]);
     let high = x.0[0] + y.0[0] + carry as u128;
     U256([high, low])
-}
-
-const fn constadd(x: U256, y: U256) -> U256 {
-    // NOTE: x and y are guaranteed to be <=
-    // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I thinkwe don't have to worry about carries out of here.
-    let (low, carry) = x.0[1].overflowing_add(y.0[1]);
-    let high = x.0[0] + y.0[0] + carry as u128;
-    U256([high, low])
-}
-
-const fn constmod_p_round(n: U256) -> U256 {
-    let low_bits = n.0[1] & P; // 127 bits of input
-    let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
-    let high_bit = n.0[0] >> 127;
-    let (sum, carry_bool) = low_bits.overflowing_add(intermediate_bits);
-    U256([carry_bool as u128 + high_bit, sum])
-}
-
-const fn constmod_p(n: U256) -> u128 {
-    // algorithm as described by Dresdenboy in "Fast calculations
-    // modulo small mersenne primes like M61" at
-    // https://www.mersenneforum.org/showthread.php?t=1955
-    let n1 = constmod_p_round(n); // n1 is at most 130 bits wide
-    let n2 = constmod_p_round(n1); // n2 is at most 128 bits wide
-    let n3 = constmod_p_round(n2); // n3 is at most 127 bits wide
-
-    ((n3.0[1] + 1) & P).saturating_sub(1)
 }
 
 // algorithm as described by Dresdenboy in "Fast calculations
@@ -137,7 +93,7 @@ const fn constmod_p(n: U256) -> u128 {
 // https://www.mersenneforum.org/showthread.php?t=1955
 // I tried using a handwritten version of this that avoided the U256s,
 // but it was like half as fast somehow.
-fn mod_p_round_1(n: U256) -> U256 {
+const fn mod_p_round_1(n: U256) -> U256 {
     let low_bits = n.0[1] & P; // 127 bits of input
     let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
     let high_bit = n.0[0] >> 127;
@@ -145,16 +101,24 @@ fn mod_p_round_1(n: U256) -> U256 {
     U256([carry_bool as u128 + high_bit, sum])
 }
 
-fn mod_p_round_2(n: U256) -> U256 {
+const fn mod_p_round_2(n: U256) -> U256 {
     let low_bits = n.0[1] & P; // 127 bits of input
     let intermediate_bits = (n.0[0] << 1) | (n.0[1] >> 127); // 128 of the 129 additional bits
     U256([0, low_bits + intermediate_bits])
 }
 
-fn mod_p_round_3(n: U256) -> U256 {
+const fn mod_p_round_3(n: U256) -> U256 {
     let low_bits = n.0[1] & P; // 127 bits of input
     let intermediate_bit = n.0[1] >> 127; // 128 of the 129 additional bits
     U256([0, low_bits + intermediate_bit])
+}
+
+const fn constmod_p(n: U256) -> u128 {
+    let n1 = mod_p_round_1(n); // n1 is at most 130 bits wide
+    let n2 = mod_p_round_2(n1); // n2 is at most 128 bits wide
+    let n3 = mod_p_round_3(n2); // n3 is at most 127 bits wide
+
+    ((n3.0[1] + 1) & P).saturating_sub(1)
 }
 
 fn mod_p(mut n: U256) -> u128 {
@@ -192,10 +156,10 @@ pub fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
 /// Identical to the `*` operator; exposed to provide a `const` version.
 pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     HashMatrix([
-        constmod_p(constadd(constmul(a.0[0b00], b.0[0b00]), constmul(a.0[0b01], b.0[0b10]))),
-        constmod_p(constadd(constmul(a.0[0b00], b.0[0b01]), constmul(a.0[0b01], b.0[0b11]))),
-        constmod_p(constadd(constmul(a.0[0b10], b.0[0b00]), constmul(a.0[0b11], b.0[0b10]))),
-        constmod_p(constadd(constmul(a.0[0b10], b.0[0b01]), constmul(a.0[0b11], b.0[0b11]))),
+        constmod_p(add(mul(a.0[0b00], b.0[0b00]), mul(a.0[0b01], b.0[0b10]))),
+        constmod_p(add(mul(a.0[0b00], b.0[0b01]), mul(a.0[0b01], b.0[0b11]))),
+        constmod_p(add(mul(a.0[0b10], b.0[0b00]), mul(a.0[0b11], b.0[0b10]))),
+        constmod_p(add(mul(a.0[0b10], b.0[0b01]), mul(a.0[0b11], b.0[0b11]))),
     ])
 }
 
