@@ -82,7 +82,7 @@ from ["Hashing with SL₂"
 none of them fulfill the above desiderata.
 */
 
-pub use crate::hash_matrix::{HashMatrix, matmul};
+pub use crate::hash_matrix::{HashMatrix, const_matmul};
 
 use crate::lookup_table::BYTE_LOOKUPS;
 

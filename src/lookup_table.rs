@@ -1,4 +1,4 @@
-use crate::hash_matrix::{A, B, HashMatrix, constmatmul};
+use crate::hash_matrix::{A, B, HashMatrix, const_matmul};
 
 const fn mul8(
     a: HashMatrix,
@@ -10,9 +10,9 @@ const fn mul8(
     g: HashMatrix,
     h: HashMatrix
 ) -> HashMatrix {
-    constmatmul(
-        constmatmul(constmatmul(a, b), constmatmul(c, d)),
-        constmatmul(constmatmul(e, f), constmatmul(g, h))
+    const_matmul(
+        const_matmul(const_matmul(a, b), const_matmul(c, d)),
+        const_matmul(const_matmul(e, f), const_matmul(g, h))
    )
 }
 

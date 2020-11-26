@@ -1,9 +1,9 @@
 # Bromberg-Shpilrain-Vdovina SL₂ Homomorphic Hashing
 
-This is an implementation of the Tillich-Zémor-style hash function
-presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
-](https://link.springer.com/article/10.1007%2Fs00233-015-9766-5) by
-Bromberg, Shpilrain, and Vdovina.
+This is a pure-Rust implementation of the Tillich-Zémor-style hash
+function presented in the paper ["Navigating in the Cayley Graph of
+SL₂(𝔽ₚ)"](https://link.springer.com/article/10.1007%2Fs00233-015-9766-5)
+by Bromberg, Shpilrain, and Vdovina.
 
 > ### Warning
 > 
