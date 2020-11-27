@@ -80,4 +80,4 @@ of related algorithms, e.g. the venerable [but broken
 ](https://link.springer.com/chapter/10.1007/978-3-642-19574-7_20) Tillich-Zémor hash,
 from ["Hashing with SL₂"
 ](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
-none of them fulfill the above desiderata.
+none of them fulfill these desiderata.

@@ -134,7 +134,7 @@ fn mod_p(mut n: U256) -> u128 {
         n = mod_p_round_3(n);
     }
     // n is at most 127 bits wide
-    
+
     if n.0[1] == P {
         0
     } else {
@@ -142,7 +142,6 @@ fn mod_p(mut n: U256) -> u128 {
     }
 }
 
-/// Identical to the `*` operator; exposed to provide a `const` version.
 pub fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     HashMatrix([
         mod_p(add(mul(a.0[0b00], b.0[0b00]), mul(a.0[0b01], b.0[0b10]))),
@@ -152,7 +151,9 @@ pub fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     ])
 }
 
-/// Identical to the `*` operator; exposed to provide a `const` version.
+/// Identical results to the `*` operator, but slower. Exposed to provide a
+/// `const` version in case you'd like to compile certain hashes into your
+/// binaries.
 pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     HashMatrix([
         constmod_p(add(mul(a.0[0b00], b.0[0b00]), mul(a.0[0b01], b.0[0b10]))),

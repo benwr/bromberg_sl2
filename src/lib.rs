@@ -69,9 +69,11 @@ p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
 We have not yet attempted to seriously optimize this library, and
 performance is a secondary goal. As of right now our procedure is
-about 1/3 as fast as SHA3-512. We needed an architecture-agnostic
-cryptographic hash procedure with a monoid homomorphism respecting
-string concatenation, written in a low-level language. While there are
+about 1/3 as fast as SHA3-512.
+
+We needed an architecture-agnostic cryptographic hash procedure with a
+monoid homomorphism respecting string concatenation, written in a
+low-level language. While there are
 [a](https://github.com/srijs/hwsl2-core)
 [few](https://github.com/nspcc-dev/tzhash)
 [implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
@@ -79,7 +81,7 @@ of related algorithms, e.g. the venerable [but broken
 ](https://link.springer.com/chapter/10.1007/978-3-642-19574-7_20) Tillich-Zémor hash,
 from ["Hashing with SL₂"
 ](https://link.springer.com/chapter/10.1007/3-540-48658-5_5),
-none of them fulfill the above desiderata.
+none of them fulfill these desiderata.
 */
 
 pub use crate::hash_matrix::{HashMatrix, constmatmul};
