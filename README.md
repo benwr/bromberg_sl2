@@ -6,7 +6,7 @@ presented in the paper ["Navigating in the Cayley Graph of SL₂(𝔽ₚ)"
 Bromberg, Shpilrain, and Vdovina.
 
 > ### Warning
-> 
+>
 > This module is not produced by cryptography experts, but by
 > [some random guy](http://benwr.net). Furthermore, the algorithm
 > was published in 2017, and is itself not at all battle-tested. Only
@@ -14,7 +14,7 @@ Bromberg, Shpilrain, and Vdovina.
 > read and understood our code, and/or (b) are building something that
 > does not rely heavily on the cryptographic properties of the hash
 > function.
-> 
+>
 > If you _are_ a cryptography expert, we welcome any bug reports or
 > pull requests! We also welcome them if you're not a cryptography
 > expert; this library is quite simple, and should be easy to grok
@@ -63,14 +63,16 @@ assert_eq!(
 
 # Technical Details
 
-We use the A(2) and B(2) matrices as generators of SL₂, and
+We use the A(2) and B(2) matrices as generators, and
 p = 2^127 - 1 as our prime order, for fast modular arithmetic.
 
-We have not yet attempted to seriously optimize this library at all,
-and performance is a secondary goal. As of right now our procedure is
-about 1/5 as fast as SHA3-512. We needed an architecture-agnostic
-cryptographic hash procedure with a monoid homomorphism respecting
-string concatenation, written in a low-level language. While there are
+We have not yet attempted to seriously optimize this library, and
+performance is a secondary goal. As of right now our procedure is
+about 1/3 as fast as SHA3-512.
+
+We needed an architecture-agnostic cryptographic hash procedure with
+a monoid homomorphism respecting string concatenation, written in a
+low-level language. While there are
 [a](https://github.com/srijs/hwsl2-core)
 [few](https://github.com/nspcc-dev/tzhash)
 [implementations](https://github.com/phlegmaticprogrammer/tillich_zemor_hash)
