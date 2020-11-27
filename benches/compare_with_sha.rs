@@ -17,8 +17,8 @@ fn from_elem(c: &mut Criterion) {
     }
     for size in [KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB].iter() {
         group.throughput(Throughput::Bytes(*size as u64));
-        group.bench_with_input(BenchmarkId::new("bromberg_high_throughput", size), size, |b, &size| {
-            b.iter(|| black_box(hash_high_throughput(&iter::repeat(5u8).take(size).collect::<Vec<u8>>())));
+        group.bench_with_input(BenchmarkId::new("bromberg_strict", size), size, |b, &size| {
+            b.iter(|| black_box(hash_strict(&iter::repeat(5u8).take(size).collect::<Vec<u8>>())));
         });
     }
     for size in [KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB].iter() {

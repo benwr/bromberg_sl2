@@ -95,28 +95,29 @@ mod lookup_table;
 /// stream and I'll give you a hash.
 pub fn hash(bytes: &[u8]) -> HashMatrix {
     let mut acc = I;
-    for b in bytes {
-        acc = acc * BYTE_LOOKUPS[*b as usize];
-    }
-    acc
-}
-
-/// This function implements the same hash function as `hash()`, but
-/// with a different performance tradeoff. The first time it's invoked,
-/// a 4MiB table of hashes is computed, which are then used to double
-/// hashing speed. For applications that need to do a lot of hashing,
-/// this is nearly twice as fast as `hash()`, but it also requires much
-/// more memory and initialization time. As a rule of thumb, if you're
-/// going to hash more than 100KiB during your program's execution, this
-/// function is probably the one to use.
-pub fn hash_high_throughput(bytes: &[u8]) -> HashMatrix {
-    let mut acc = I;
     for bs in bytes.chunks(2) {
         if bs.len() == 2 {
             acc = acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))];
         } else {
             acc = acc * BYTE_LOOKUPS[bs[0] as usize];
         }
+    }
+    acc
+}
+
+/// This function implements the same hash function as `hash()`, but
+/// with a different performance tradeoff. The first time it's invoked,
+/// `hash` computes a 4MiB table of all the hashes for every pair of
+/// bytes, which are then used to double hashing speed. For applications
+/// that need to do a lot of hashing, this is nearly twice as fast as
+/// `hash()`, but it also requires much more memory and initialization
+/// time. As a rule of thumb, if you're going to hash less than 100KiB
+/// during your program's execution, you should probably use
+/// `hash_strict`.
+pub fn hash_strict(bytes: &[u8]) -> HashMatrix {
+    let mut acc = I;
+    for b in bytes {
+        acc = acc * BYTE_LOOKUPS[*b as usize];
     }
     acc
 }
