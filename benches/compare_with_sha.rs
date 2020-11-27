@@ -8,11 +8,17 @@ use sha3::{Digest, Sha3_512};
 fn from_elem(c: &mut Criterion) {
     static KB: usize = 1024;
 
-    let mut group = c.benchmark_group("from_elem");
+    let mut group = c.benchmark_group("byte_hashing");
     for size in [KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB].iter() {
         group.throughput(Throughput::Bytes(*size as u64));
         group.bench_with_input(BenchmarkId::new("bromberg", size), size, |b, &size| {
             b.iter(|| black_box(iter::repeat(5u8).take(size).collect::<Vec<u8>>().bromberg_hash()));
+        });
+    }
+    for size in [KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB].iter() {
+        group.throughput(Throughput::Bytes(*size as u64));
+        group.bench_with_input(BenchmarkId::new("bromberg_high_throughput", size), size, |b, &size| {
+            b.iter(|| black_box(hash_high_throughput(&iter::repeat(5u8).take(size).collect::<Vec<u8>>())));
         });
     }
     for size in [KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB].iter() {
