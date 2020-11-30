@@ -2,26 +2,10 @@ use crate::hash_matrix::{A, B, HashMatrix, constmatmul};
 use seq_macro::seq;
 use lazy_static::lazy_static;
 
-const fn mul8(
-    a: HashMatrix,
-    b: HashMatrix,
-    c: HashMatrix,
-    d: HashMatrix,
-    e: HashMatrix,
-    f: HashMatrix,
-    g: HashMatrix,
-    h: HashMatrix
-) -> HashMatrix {
-    constmatmul(
-        constmatmul(constmatmul(a, b), constmatmul(c, d)),
-        constmatmul(constmatmul(e, f), constmatmul(g, h))
-   )
-}
-
 const BIT_LOOKUPS: [HashMatrix; 2] = [B, A];
 
 const fn mul_from_byte(b: u8) -> HashMatrix {
-    let bit0 = ((b & (1 << 0)) >> 0) as usize;
+    let bit0 = (b & 1) as usize;
     let bit1 = ((b & (1 << 1)) >> 1) as usize;
     let bit2 = ((b & (1 << 2)) >> 2) as usize;
     let bit3 = ((b & (1 << 3)) >> 3) as usize;
@@ -30,8 +14,19 @@ const fn mul_from_byte(b: u8) -> HashMatrix {
     let bit6 = ((b & (1 << 6)) >> 6) as usize;
     let bit7 = ((b & (1 << 7)) >> 7) as usize;
 
-    mul8(BIT_LOOKUPS[bit7], BIT_LOOKUPS[bit6], BIT_LOOKUPS[bit5], BIT_LOOKUPS[bit4],
-         BIT_LOOKUPS[bit3], BIT_LOOKUPS[bit2], BIT_LOOKUPS[bit1], BIT_LOOKUPS[bit0])
+    let m0 = BIT_LOOKUPS[bit0];
+    let m1 = BIT_LOOKUPS[bit1];
+    let m2 = BIT_LOOKUPS[bit2];
+    let m3 = BIT_LOOKUPS[bit3];
+    let m4 = BIT_LOOKUPS[bit4];
+    let m5 = BIT_LOOKUPS[bit5];
+    let m6 = BIT_LOOKUPS[bit6];
+    let m7 = BIT_LOOKUPS[bit7];
+
+    constmatmul(
+        constmatmul(constmatmul(m7, m6), constmatmul(m5, m4)),
+        constmatmul(constmatmul(m3, m2), constmatmul(m1, m0))
+   )
 }
 
 const fn mul_from_wyde(d: u16) -> HashMatrix {
