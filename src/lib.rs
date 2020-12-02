@@ -84,6 +84,11 @@ from ["Hashing with SL₂"
 none of them fulfill these desiderata.
 */
 
+#![no_std]
+
+#[macro_use]
+extern crate alloc;
+
 pub use crate::hash_matrix::{HashMatrix, constmatmul};
 
 use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};

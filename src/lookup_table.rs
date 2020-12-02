@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use crate::hash_matrix::{A, B, HashMatrix, constmatmul};
 use seq_macro::seq;
 use lazy_static::lazy_static;

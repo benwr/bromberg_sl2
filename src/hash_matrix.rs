@@ -1,5 +1,9 @@
-use std::fmt::Debug;
-use std::ops::Mul;
+use alloc::string::String;
+use core::fmt::Debug;
+use core::ops::Mul;
+
+#[cfg(test)]
+use alloc::vec::Vec;
 
 #[derive(PartialEq, Eq, Debug)]
 // big-end first; does this matter?
