@@ -93,7 +93,7 @@ pub use crate::hash_matrix::{HashMatrix, constmatmul};
 
 use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};
 
-use crate::hash_matrix::I;
+pub use crate::hash_matrix::I;
 
 mod hash_matrix;
 mod lookup_table;
