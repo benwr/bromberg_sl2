@@ -56,7 +56,7 @@ pub(crate) const B: HashMatrix = HashMatrix([
     2, 1,
 ]);
 
-pub(crate) static I: HashMatrix = HashMatrix([
+pub static I: HashMatrix = HashMatrix([
     1, 0,
     0, 1,
 ]);
