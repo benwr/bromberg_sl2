@@ -11,7 +11,7 @@ use alloc::vec::Vec;
 struct U256([u128; 2]);
 
 #[cfg(test)]
-use num_bigint::*;
+use num_bigint::{BigUint, ToBigUint};
 
 #[cfg(test)]
 impl ToBigUint for U256 {
