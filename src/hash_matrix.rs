@@ -33,6 +33,7 @@ pub struct HashMatrix([u128; 4]);
 
 impl HashMatrix {
     /// Produce a hex digest of the hash. This will be 128 hex digits.
+    #[must_use]
     pub fn to_hex(self) -> String {
         format!("{:016x}{:016x}{:016x}{:016x}",
                 self.0[0], self.0[1], self.0[2], self.0[3])
@@ -66,20 +67,20 @@ const P: u128 = SUCC_P - 1;
 
 const fn mul(x: u128, y: u128) -> U256 {
     // this could probably be made much faster, though I'm not sure.
-    let xlo = x & 0xffff_ffff_ffff_ffff;
-    let ylo = y & 0xffff_ffff_ffff_ffff;
+    let x_lo = x & 0xffff_ffff_ffff_ffff;
+    let y_lo = y & 0xffff_ffff_ffff_ffff;
 
-    let xhi = x >> 64;
-    let yhi = y >> 64;
+    let x_hi = x >> 64;
+    let y_hi = y >> 64;
 
-    let xhi_ylo = xhi * ylo;
-    let yhi_xlo = yhi * xlo;
+    let x_hi_y_lo = x_hi * y_lo;
+    let y_hi_x_lo = y_hi * x_lo;
 
-    let (lo_sum_1, carry_bool_1) = (xhi_ylo << 64).overflowing_add(yhi_xlo << 64);
-    let (lo_sum_2, carry_bool_2) = lo_sum_1.overflowing_add(xlo * ylo);
+    let (lo_sum_1, carry_bool_1) = (x_hi_y_lo << 64).overflowing_add(y_hi_x_lo << 64);
+    let (lo_sum_2, carry_bool_2) = lo_sum_1.overflowing_add(x_lo * y_lo);
     let carry = carry_bool_1 as u128 + carry_bool_2 as u128;
 
-    U256([(xhi * yhi) + (xhi_ylo >> 64) + (yhi_xlo >> 64) + carry, lo_sum_2])
+    U256([(x_hi * y_hi) + (x_hi_y_lo >> 64) + (y_hi_x_lo >> 64) + carry, lo_sum_2])
 }
 
 const fn add(x: U256, y: U256) -> U256 {
@@ -158,6 +159,7 @@ pub fn matmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
 /// Identical results to the `*` operator, but slower. Exposed to provide a
 /// `const` version in case you'd like to compile certain hashes into your
 /// binaries.
+#[must_use]
 pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     HashMatrix([
         constmod_p(add(mul(a.0[0b00], b.0[0b00]), mul(a.0[0b01], b.0[0b10]))),
