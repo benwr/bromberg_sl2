@@ -101,6 +101,7 @@ mod lookup_table;
 /// The main export of this library: Give me a byte
 /// stream and I'll give you a hash.
 #[must_use]
+#[inline]
 pub fn hash(bytes: &[u8]) -> HashMatrix {
     let mut acc = I;
     for bs in bytes.chunks(2) {
@@ -123,6 +124,7 @@ pub fn hash(bytes: &[u8]) -> HashMatrix {
 /// during your program's execution, you should probably use
 /// `hash_strict`.
 #[must_use]
+#[inline]
 pub fn hash_strict(bytes: &[u8]) -> HashMatrix {
     let mut acc = I;
     for b in bytes {
@@ -137,30 +139,35 @@ pub trait BrombergHashable {
 }
 
 impl BrombergHashable for [u8] {
+    #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         hash(self)
     }
 }
 
 impl<T: BrombergHashable> BrombergHashable for &T {
+    #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         (**self).bromberg_hash()
     }
 }
 
 impl<T: BrombergHashable> BrombergHashable for &mut T {
+    #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         (**self).bromberg_hash()
     }
 }
 
 impl<T: BrombergHashable> BrombergHashable for alloc::boxed::Box<T> {
+    #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         (**self).bromberg_hash()
     }
 }
 
 impl<T: BrombergHashable> BrombergHashable for alloc::rc::Rc<T> {
+    #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         (**self).bromberg_hash()
     }
