@@ -114,6 +114,38 @@ pub fn hash(bytes: &[u8]) -> HashMatrix {
     acc
 }
 
+#[must_use]
+#[inline]
+#[cfg(feature = "std")]
+/// Same as `hash` but computes the hash of the byte stream in parallel.
+///
+/// The number of threads used is set automatically but can be overridden using the
+/// `RAYON_NUM_THREADS` environment variable
+pub fn hash_par(bytes: &[u8]) -> HashMatrix {
+    use rayon::prelude::*;
+
+    bytes
+        .par_chunks(2)
+        .fold(
+            || I,
+            |mut acc, bs| {
+                if bs.len() == 2 {
+                    acc = acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))];
+                } else {
+                    acc = acc * BYTE_LOOKUPS[bs[0] as usize];
+                }
+                acc
+            },
+        )
+        .reduce(
+            || I,
+            |mut acc, h| {
+                acc = acc * h;
+                acc
+            },
+        )
+}
+
 /// This procedure implements the same hash function as `hash()`, but
 /// with a different performance tradeoff. The first time it's invoked,
 /// `hash` computes a 4MiB table of all the hashes for every pair of
