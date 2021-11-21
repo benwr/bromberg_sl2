@@ -128,13 +128,12 @@ pub fn hash_par(bytes: &[u8]) -> HashMatrix {
         .par_chunks(2)
         .fold(
             || I,
-            |mut acc, bs| {
+            |acc, bs| {
                 if bs.len() == 2 {
-                    acc = acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))];
+                    acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))]
                 } else {
-                    acc = acc * BYTE_LOOKUPS[bs[0] as usize];
+                     acc * BYTE_LOOKUPS[bs[0] as usize]
                 }
-                acc
             },
         )
         .reduce(
