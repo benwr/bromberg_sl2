@@ -283,4 +283,13 @@ mod tests {
             ares != bres || a == b
         }
     }
+
+    #[cfg(feature = "std")]
+    quickcheck! {
+        fn par_equiv(a: Vec<u8>) -> bool {
+            let h0 = hash(&a);
+            let h1 = hash_par(&a);
+            h0 == h1
+        }
+    }
 }
