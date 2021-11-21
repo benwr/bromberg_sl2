@@ -1,4 +1,5 @@
 use alloc::string::String;
+use digest::{consts::U64, generic_array};
 use core::fmt::Debug;
 use core::ops::Mul;
 
@@ -38,6 +39,21 @@ impl HashMatrix {
     pub fn to_hex(self) -> String {
         format!("{:016x}{:016x}{:016x}{:016x}",
                 self.0, self.1, self.2, self.3)
+    }
+
+    #[must_use]
+    #[inline]
+    pub(crate) fn generic_array_digest(&self) -> generic_array::GenericArray<u8, U64> {
+        use core::iter::once;
+
+        digest::generic_array::GenericArray::from_exact_iter(
+            once(self.0)
+                .chain(once(self.1))
+                .chain(once(self.2))
+                .chain(once(self.3))
+                .flat_map(|x| x.to_le_bytes()),
+        )
+        .unwrap()
     }
 }
 

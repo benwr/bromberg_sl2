@@ -89,7 +89,9 @@ none of them fulfill these desiderata.
 #[macro_use]
 extern crate alloc;
 
-pub use crate::hash_matrix::{HashMatrix, constmatmul};
+use digest::{Digest, generic_array::typenum::Unsigned};
+
+pub use crate::hash_matrix::{constmatmul, HashMatrix};
 
 use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};
 
@@ -201,5 +203,44 @@ impl<T: BrombergHashable> BrombergHashable for alloc::rc::Rc<T> {
     #[inline]
     fn bromberg_hash(&self) -> HashMatrix {
         (**self).bromberg_hash()
+    }
+}
+
+impl Digest for HashMatrix {
+    type OutputSize = digest::consts::U64;
+
+    fn new() -> Self {
+        I
+    }
+
+    fn update(&mut self, data: impl AsRef<[u8]>) {
+        *self = *self * data.as_ref().bromberg_hash();
+    }
+
+    fn chain(mut self, data: impl AsRef<[u8]>) -> Self {
+        self.update(data);
+        self
+    }
+
+    fn finalize(self) -> digest::Output<Self> {
+        self.generic_array_digest()
+    }
+
+    fn finalize_reset(&mut self) -> digest::Output<Self> {
+        let out = self.generic_array_digest();
+        *self = I;
+        out
+    }
+
+    fn reset(&mut self) {
+        *self = I;
+    }
+
+    fn output_size() -> usize {
+        <Self::OutputSize as Unsigned>::to_usize()
+    }
+
+    fn digest(data: &[u8]) -> digest::Output<Self> {
+        Self::new().chain(data).finalize()
     }
 }
