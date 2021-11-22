@@ -94,7 +94,7 @@ pub use digest::{
     generic_array::GenericArray, Digest, DynDigest, FixedOutput, FixedOutputDirty, Reset, Update,
 };
 
-pub use crate::hash_matrix::{constmatmul, HashMatrix};
+pub use crate::hash_matrix::{constmatmul, HashMatrix, DigestString};
 
 use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};
 

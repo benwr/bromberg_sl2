@@ -45,12 +45,12 @@ impl HashMatrix {
     }
 }
 
-trait DigestString {
+pub trait DigestString {
     fn to_hex(self) -> String;
 }
 
 impl DigestString for HashMatrix {
-    /// Produce a hex digest of the hash. This will be 128 hex digits.
+    /// Produce a hex digest of the hash. This will be a 128 hex digits.
     #[must_use]
     #[inline]
     fn to_hex(self) -> String {
@@ -60,7 +60,7 @@ impl DigestString for HashMatrix {
 }
 
 impl DigestString for generic_array::GenericArray<u8, U64> {
-    /// Produce a hex digest from a GenericArray digest. This will be 128 hex digits.
+    /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
     #[must_use]
     #[inline]
     fn to_hex(self) -> String {
