@@ -89,7 +89,10 @@ none of them fulfill these desiderata.
 #[macro_use]
 extern crate alloc;
 
-use digest::{Digest, generic_array::typenum::Unsigned};
+// Re-export digest traits
+pub use digest::{
+    generic_array::GenericArray, Digest, DynDigest, FixedOutput, FixedOutputDirty, Reset, Update,
+};
 
 pub use crate::hash_matrix::{constmatmul, HashMatrix};
 
@@ -134,7 +137,7 @@ pub fn hash_par(bytes: &[u8]) -> HashMatrix {
                 if bs.len() == 2 {
                     acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))]
                 } else {
-                     acc * BYTE_LOOKUPS[bs[0] as usize]
+                    acc * BYTE_LOOKUPS[bs[0] as usize]
                 }
             },
         )
@@ -206,41 +209,22 @@ impl<T: BrombergHashable> BrombergHashable for alloc::rc::Rc<T> {
     }
 }
 
-impl Digest for HashMatrix {
-    type OutputSize = digest::consts::U64;
-
-    fn new() -> Self {
-        I
-    }
-
+impl Update for HashMatrix {
     fn update(&mut self, data: impl AsRef<[u8]>) {
         *self = *self * data.as_ref().bromberg_hash();
     }
+}
 
-    fn chain(mut self, data: impl AsRef<[u8]>) -> Self {
-        self.update(data);
-        self
-    }
-
-    fn finalize(self) -> digest::Output<Self> {
-        self.generic_array_digest()
-    }
-
-    fn finalize_reset(&mut self) -> digest::Output<Self> {
-        let out = self.generic_array_digest();
-        *self = I;
-        out
-    }
-
+impl Reset for HashMatrix {
     fn reset(&mut self) {
         *self = I;
     }
+}
 
-    fn output_size() -> usize {
-        <Self::OutputSize as Unsigned>::to_usize()
-    }
+impl FixedOutputDirty for HashMatrix {
+    type OutputSize = digest::consts::U64;
 
-    fn digest(data: &[u8]) -> digest::Output<Self> {
-        Self::new().chain(data).finalize()
+    fn finalize_into_dirty(&mut self, out: &mut GenericArray<u8, Self::OutputSize>) {
+        *out = self.generic_array_digest();
     }
 }
