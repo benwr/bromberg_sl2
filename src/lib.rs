@@ -91,10 +91,11 @@ extern crate alloc;
 
 // Re-export digest traits
 pub use digest::{
-    generic_array::GenericArray, Digest, DynDigest, FixedOutput, FixedOutputDirty, Reset, Update,
+    self, generic_array::GenericArray, Digest, DynDigest, FixedOutput, FixedOutputDirty, Reset,
+    Update,
 };
 
-pub use crate::hash_matrix::{constmatmul, HashMatrix, DigestString};
+pub use crate::hash_matrix::{constmatmul, DigestString, HashMatrix};
 
 use crate::lookup_table::{BYTE_LOOKUPS, WYDE_LOOKUPS};
 
