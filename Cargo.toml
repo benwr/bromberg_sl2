@@ -24,9 +24,10 @@ opt-level = 3
 codegen-units = 1
 
 [dependencies]
-seq-macro = "^0.2"
+digest = "0.9.0"
 lazy_static = "^1.4"
 rayon = { version = "1.5.1", optional = true }
+seq-macro = "^0.2"
 
 [dev-dependencies]
 criterion = "0.3"

@@ -1,4 +1,5 @@
 use alloc::string::String;
+use digest::{consts::U64, generic_array};
 use core::fmt::Debug;
 use core::ops::Mul;
 
@@ -32,12 +33,50 @@ impl ToBigUint for U256 {
 pub struct HashMatrix(u128, u128, u128, u128);
 
 impl HashMatrix {
-    /// Produce a hex digest of the hash. This will be 128 hex digits.
     #[must_use]
     #[inline]
-    pub fn to_hex(self) -> String {
-        format!("{:016x}{:016x}{:016x}{:016x}",
+    pub(crate) fn generic_array_digest(&self) -> generic_array::GenericArray<u8, U64> {
+        digest::generic_array::GenericArray::from_exact_iter(
+            [self.0, self.1, self.2, self.3]
+                .iter()
+                .flat_map(|x| x.to_be_bytes()),
+        )
+        .unwrap()
+    }
+}
+
+pub trait DigestString {
+    fn to_hex(self) -> String;
+}
+
+impl DigestString for HashMatrix {
+    /// Produce a hex digest of the hash. This will be a 128 hex digits.
+    #[must_use]
+    #[inline]
+    fn to_hex(self) -> String {
+        format!("{:032x}{:032x}{:032x}{:032x}",
                 self.0, self.1, self.2, self.3)
+    }
+}
+
+impl DigestString for generic_array::GenericArray<u8, U64> {
+    /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
+    #[must_use]
+    #[inline]
+    fn to_hex(self) -> String {
+        let mut out = String::new();
+
+        for byte in self.iter() {
+            out.push_str(&format!("{:02x}", byte));
+        }
+
+        out
+    }
+}
+
+impl Default for HashMatrix {
+    fn default() -> Self {
+        I
     }
 }
 
@@ -290,6 +329,16 @@ mod tests {
             let h0 = hash(&a);
             let h1 = hash_par(&a);
             h0 == h1
+        }
+    }
+
+    quickcheck! {
+        fn same_hash_digest(a: Vec<u8>) -> bool {
+            let h = hash(&a);
+            let simple = h.to_hex();
+            let via_generic_array = h.generic_array_digest().to_hex();
+
+            simple == via_generic_array
         }
     }
 }
