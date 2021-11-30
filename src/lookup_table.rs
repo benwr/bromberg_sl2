@@ -1,7 +1,7 @@
+use crate::hash_matrix::{constmatmul, HashMatrix, A, B};
 use alloc::vec::Vec;
-use crate::hash_matrix::{A, B, HashMatrix, constmatmul};
-use seq_macro::seq;
 use lazy_static::lazy_static;
+use seq_macro::seq;
 
 const BIT_LOOKUPS: [HashMatrix; 2] = [B, A];
 
@@ -26,16 +26,15 @@ const fn mul_from_byte(b: u8) -> HashMatrix {
 
     constmatmul(
         constmatmul(constmatmul(m7, m6), constmatmul(m5, m4)),
-        constmatmul(constmatmul(m3, m2), constmatmul(m1, m0))
-   )
+        constmatmul(constmatmul(m3, m2), constmatmul(m1, m0)),
+    )
 }
 
 const fn mul_from_wyde(d: u16) -> HashMatrix {
     constmatmul(mul_from_byte((d >> 8) as u8), mul_from_byte(d as u8))
 }
 
-pub(crate) static BYTE_LOOKUPS: [HashMatrix; 256] =
-seq!(N in 0..256 {
+pub(crate) static BYTE_LOOKUPS: [HashMatrix; 256] = seq!(N in 0..256 {
     [
         #( mul_from_byte(N), )*
     ]

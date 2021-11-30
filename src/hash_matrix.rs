@@ -1,7 +1,7 @@
 use alloc::string::String;
-use digest::{consts::U64, generic_array};
 use core::fmt::Debug;
 use core::ops::Mul;
+use digest::{consts::U64, generic_array};
 
 #[cfg(test)]
 use alloc::vec::Vec;
@@ -17,12 +17,12 @@ use num_bigint::{BigUint, ToBigUint};
 #[cfg(test)]
 impl ToBigUint for U256 {
     fn to_biguint(&self) -> Option<BigUint> {
-        Some(self.0.to_biguint().unwrap()
-             * (1.to_biguint().unwrap() << 128)
-             + self.1.to_biguint().unwrap())
+        Some(
+            self.0.to_biguint().unwrap() * (1.to_biguint().unwrap() << 128)
+                + self.1.to_biguint().unwrap(),
+        )
     }
 }
-
 
 /// The type of hash values. Takes up 512 bits of space.
 /// Can be created only by composition of the provided
@@ -54,8 +54,10 @@ impl DigestString for HashMatrix {
     #[must_use]
     #[inline]
     fn to_hex(self) -> String {
-        format!("{:032x}{:032x}{:032x}{:032x}",
-                self.0, self.1, self.2, self.3)
+        format!(
+            "{:032x}{:032x}{:032x}{:032x}",
+            self.0, self.1, self.2, self.3
+        )
     }
 }
 
@@ -122,7 +124,10 @@ const fn mul(x: u128, y: u128) -> U256 {
     let (lo_sum_2, carry_bool_2) = lo_sum_1.overflowing_add(x_lo * y_lo);
     let carry = carry_bool_1 as u128 + carry_bool_2 as u128;
 
-    U256((x_hi * y_hi) + (x_hi_y_lo >> 64) + (y_hi_x_lo >> 64) + carry, lo_sum_2)
+    U256(
+        (x_hi * y_hi) + (x_hi_y_lo >> 64) + (y_hi_x_lo >> 64) + carry,
+        lo_sum_2,
+    )
 }
 
 #[inline]
@@ -221,19 +226,22 @@ pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
     )
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::*;
     #[test]
     fn it_works() {
-        assert_eq!(mul(1 << 127, 2), U256(1,0));
-        assert_eq!(mul(1 << 127, 1 << 127),
-            U256(85070591730234615865843651857942052864, 0));
+        assert_eq!(mul(1 << 127, 2), U256(1, 0));
+        assert_eq!(
+            mul(1 << 127, 1 << 127),
+            U256(85070591730234615865843651857942052864, 0)
+        );
         assert_eq!(mul(4, 4), U256(0, 16));
-        assert_eq!(mul((1 << 127) + 4, (1 << 127) + 4),
-            U256(85070591730234615865843651857942052868, 16));
+        assert_eq!(
+            mul((1 << 127) + 4, (1 << 127) + 4),
+            U256(85070591730234615865843651857942052868, 16)
+        );
 
         assert_eq!(mod_p(U256(0, P)), 0);
         assert_eq!(mod_p(U256(0, P + 1)), 1);
@@ -247,27 +255,34 @@ mod tests {
         assert_eq!(mod_p(U256(P, P)), 0);
         assert_eq!(mod_p(U256(0, u128::MAX)), 1);
 
-        assert_eq!(HashMatrix(1, 0, 0, 1)
-                   * HashMatrix(1, 0, 0, 1),
-                   HashMatrix(1, 0, 0, 1));
-        assert_eq!(HashMatrix(2, 0, 0, 2)
-                   * HashMatrix(2, 0, 0, 2),
-                   HashMatrix(4, 0, 0, 4));
-        assert_eq!(HashMatrix(0, 1, 1, 0)
-                   * HashMatrix(2, 0, 0, 2),
-                   HashMatrix(0, 2, 2, 0));
-        assert_eq!(HashMatrix(0, 1, 1, 0)
-                   * HashMatrix(2, 0, 0, 2),
-                   HashMatrix(0, 2, 2, 0));
-        assert_eq!(HashMatrix(1, 0, 0, 1)
-                   * HashMatrix(P, 0, 0, P),
-                   HashMatrix(0, 0, 0, 0));
-        assert_eq!(HashMatrix(1, 0, 0, 1)
-                   * HashMatrix(P + 1, P + 5, 2, P),
-                   HashMatrix(1, 5, 2, 0));
-        assert_eq!(HashMatrix(P + 1, P + 3, P + 4, P + 5)
-                   * HashMatrix(P + 1, P, P, P + 1),
-                   HashMatrix(1, 3, 4, 5));
+        assert_eq!(
+            HashMatrix(1, 0, 0, 1) * HashMatrix(1, 0, 0, 1),
+            HashMatrix(1, 0, 0, 1)
+        );
+        assert_eq!(
+            HashMatrix(2, 0, 0, 2) * HashMatrix(2, 0, 0, 2),
+            HashMatrix(4, 0, 0, 4)
+        );
+        assert_eq!(
+            HashMatrix(0, 1, 1, 0) * HashMatrix(2, 0, 0, 2),
+            HashMatrix(0, 2, 2, 0)
+        );
+        assert_eq!(
+            HashMatrix(0, 1, 1, 0) * HashMatrix(2, 0, 0, 2),
+            HashMatrix(0, 2, 2, 0)
+        );
+        assert_eq!(
+            HashMatrix(1, 0, 0, 1) * HashMatrix(P, 0, 0, P),
+            HashMatrix(0, 0, 0, 0)
+        );
+        assert_eq!(
+            HashMatrix(1, 0, 0, 1) * HashMatrix(P + 1, P + 5, 2, P),
+            HashMatrix(1, 5, 2, 0)
+        );
+        assert_eq!(
+            HashMatrix(P + 1, P + 3, P + 4, P + 5) * HashMatrix(P + 1, P, P, P + 1),
+            HashMatrix(1, 3, 4, 5)
+        );
     }
 
     use quickcheck::*;
