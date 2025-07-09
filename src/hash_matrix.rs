@@ -273,6 +273,11 @@ mod tests {
             HashMatrix(1, 3, 4, 5)
         );
     }
+
+    #[test]
+    fn no_overflow_even_with_large_args() {
+        add(mul(P, P), mul(P, P));
+    }
 }
 
 #[cfg(test)]
