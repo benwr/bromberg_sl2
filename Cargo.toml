@@ -30,10 +30,10 @@ rayon = { version = "1.10.0", optional = true }
 seq-macro = "0.3.6"
 
 [dev-dependencies]
-criterion = "0.3"
-num-bigint = "0.3"
-quickcheck = "0.9"
-sha3 = "0.9"
+criterion = "0.6"
+num-bigint = "0.4"
+quickcheck = "1"
+sha3 = "0.10"
 
 [[bench]]
 name = "compare_with_sha"

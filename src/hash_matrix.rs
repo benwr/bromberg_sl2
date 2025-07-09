@@ -124,7 +124,7 @@ const fn mul(x: u128, y: u128) -> U256 {
 const fn add(x: U256, y: U256) -> U256 {
     // NOTE: x and y are guaranteed to be <=
     // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I think we don't have to worry about carries out of here.
+    // so I think we don't have to worry about carries out of here or overflows of the high word.
     let (low, carry) = x.1.overflowing_add(y.1);
     let high = x.0 + y.0 + carry as u128;
     U256(high, low)
@@ -219,7 +219,6 @@ pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::*;
     #[test]
     fn it_works() {
         assert_eq!(mul(1 << 127, 2), U256(1, 0));
@@ -274,7 +273,12 @@ mod tests {
             HashMatrix(1, 3, 4, 5)
         );
     }
+}
 
+#[cfg(test)]
+mod propertytests {
+    use super::*;
+    use crate::*;
     use quickcheck::*;
 
     quickcheck! {
@@ -299,10 +303,10 @@ mod tests {
 
     quickcheck! {
         fn add_check(a: u128, b: u128, c: u128, d: u128) -> bool {
-            let res = add(mul(a, b), mul(c, d));
+            let res = add(mul(a % P, b % P), mul(c % P, d % P));
 
-            let big_res = a.to_biguint().unwrap() * b.to_biguint().unwrap()
-                + c.to_biguint().unwrap() * d.to_biguint().unwrap();
+            let big_res = (a % P).to_biguint().unwrap() * (b % P).to_biguint().unwrap()
+                + (c % P).to_biguint().unwrap() * (d % P).to_biguint().unwrap();
 
             res.to_biguint().unwrap() == big_res
         }
@@ -310,7 +314,7 @@ mod tests {
 
     quickcheck! {
         fn mod_p_check(a: u128, b: u128, c: u128, d: u128) -> bool {
-            let res = mod_p(add(mul(a, b), mul(c, d)));
+            let res = mod_p(add(mul(a % P, b % P), mul(c % P, d % P)));
 
             let big_res = (a.to_biguint().unwrap() * b.to_biguint().unwrap()
                 + c.to_biguint().unwrap() * d.to_biguint().unwrap())
