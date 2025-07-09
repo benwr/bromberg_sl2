@@ -1,5 +1,5 @@
 use alloc::string::String;
-use core::fmt::Debug;
+use core::fmt::{Debug, Write};
 use core::ops::Mul;
 use digest::{consts::U64, generic_array};
 
@@ -32,6 +32,7 @@ impl ToBigUint for U256 {
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, PartialOrd, Ord)]
 pub struct HashMatrix(u128, u128, u128, u128);
 
+#[cfg(test)] // This is only used for testing.
 impl HashMatrix {
     #[must_use]
     #[inline]
@@ -51,7 +52,6 @@ pub trait DigestString {
 
 impl DigestString for HashMatrix {
     /// Produce a hex digest of the hash. This will be a 128 hex digits.
-    #[must_use]
     #[inline]
     fn to_hex(self) -> String {
         format!(
@@ -62,14 +62,15 @@ impl DigestString for HashMatrix {
 }
 
 impl DigestString for generic_array::GenericArray<u8, U64> {
-    /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
-    #[must_use]
-    #[inline]
+    /// Produce a hex digest from a GenericArray digest. This will be 128 hex digits.
     fn to_hex(self) -> String {
-        let mut out = String::new();
+        let mut out = String::with_capacity(self.len() * 2); // 2 hex digits per byte
 
         for byte in self.iter() {
-            out.push_str(&format!("{:02x}", byte));
+            write!(&mut out, "{byte:02x}").expect(
+                "Writing to a String can only fail if we're out of memory; \
+                with_capacity should have already triggered that panic",
+            );
         }
 
         out
@@ -90,20 +91,10 @@ impl Mul for HashMatrix {
     }
 }
 
-pub(crate) const A: HashMatrix = HashMatrix(
-    1, 2,
-    0, 1,
-);
-
-pub(crate) const B: HashMatrix = HashMatrix(
-    1, 0,
-    2, 1,
-);
-
-pub static I: HashMatrix = HashMatrix(
-    1, 0,
-    0, 1,
-);
+// Generator matrices for the hash function, taken from Bromberg et al.
+pub(crate) const A: HashMatrix = HashMatrix(1, 2, 0, 1);
+pub(crate) const B: HashMatrix = HashMatrix(1, 0, 2, 1);
+pub static I: HashMatrix = HashMatrix(1, 0, 0, 1);
 
 const SUCC_P: u128 = 1 << 127;
 const P: u128 = SUCC_P - 1;
@@ -132,15 +123,17 @@ const fn mul(x: u128, y: u128) -> U256 {
 
 #[inline]
 const fn add(x: U256, y: U256) -> U256 {
-    // NOTE: x and y are guaranteed to be <=
-    // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I think we don't have to worry about carries out of here.
+    // NOTE: x and y are guaranteed to be <= (2^127 - 2)^2 = 2^254 - 4 * 2^127 +
+    // 4. This is because (apart from testing) we only call this function on the
+    // results of `mul`, which in turn always gets its args from entries in the
+    // matrix, which in turn are always calculcated mod P. Thus, I think we don't
+    // have to worry about carries out of here, or overflows of the high word.
     let (low, carry) = x.1.overflowing_add(y.1);
     let high = x.0 + y.0 + carry as u128;
     U256(high, low)
 }
 
-// algorithm as described by Dresdenboy in "Fast calculations
+// Algorithm as described by Dresdenboy in "Fast calculations
 // modulo small mersenne primes like M61" at
 // https://www.mersenneforum.org/showthread.php?t=1955
 // I tried using a handwritten version of this that avoided the U256s,
@@ -229,7 +222,6 @@ pub const fn constmatmul(a: HashMatrix, b: HashMatrix) -> HashMatrix {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::*;
     #[test]
     fn it_works() {
         assert_eq!(mul(1 << 127, 2), U256(1, 0));
@@ -285,6 +277,16 @@ mod tests {
         );
     }
 
+    #[test]
+    fn no_overflow_even_with_large_args() {
+        add(mul(P, P), mul(P, P));
+    }
+}
+
+#[cfg(test)]
+mod propertytests {
+    use super::*;
+    use crate::*;
     use quickcheck::*;
 
     quickcheck! {
@@ -309,10 +311,12 @@ mod tests {
 
     quickcheck! {
         fn add_check(a: u128, b: u128, c: u128, d: u128) -> bool {
-            let res = add(mul(a, b), mul(c, d));
+            // take args mod P; all arguments to `mul` are matrix entries
+            // and thus reduced mod p.
+            let res = add(mul(a % P, b % P), mul(c % P, d % P));
 
-            let big_res = a.to_biguint().unwrap() * b.to_biguint().unwrap()
-                + c.to_biguint().unwrap() * d.to_biguint().unwrap();
+            let big_res = (a % P).to_biguint().unwrap() * (b % P).to_biguint().unwrap()
+                + (c % P).to_biguint().unwrap() * (d % P).to_biguint().unwrap();
 
             res.to_biguint().unwrap() == big_res
         }
@@ -320,7 +324,9 @@ mod tests {
 
     quickcheck! {
         fn mod_p_check(a: u128, b: u128, c: u128, d: u128) -> bool {
-            let res = mod_p(add(mul(a, b), mul(c, d)));
+            // take args mod P; all arguments to `mul` are matrix entries
+            // and thus reduced mod p.
+            let res = mod_p(add(mul(a % P, b % P), mul(c % P, d % P)));
 
             let big_res = (a.to_biguint().unwrap() * b.to_biguint().unwrap()
                 + c.to_biguint().unwrap() * d.to_biguint().unwrap())

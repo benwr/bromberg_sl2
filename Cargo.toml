@@ -1,7 +1,7 @@
 [package]
 name = "bromberg_sl2"
 description = "Cayley hashing as in 'Navigating in the Cayley Graph of SL₂(𝔽ₚ)'"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Ben Weinstein-Raun <root@benwr.net>"]
 edition = "2018"
 license = "CC0-1.0"
@@ -24,16 +24,16 @@ opt-level = 3
 codegen-units = 1
 
 [dependencies]
-digest = "0.9.0"
-lazy_static = "^1.4"
-rayon = { version = "1.5.1", optional = true }
-seq-macro = "^0.2"
+digest = "0.10.7"
+lazy_static = "1.5.0"
+rayon = { version = "1.10.0", optional = true }
+seq-macro = "0.3.6"
 
 [dev-dependencies]
-criterion = "0.3"
-num-bigint = "0.3"
-quickcheck = "0.9"
-sha3 = "0.9"
+criterion = "0.6"
+num-bigint = "0.4"
+quickcheck = "1"
+sha3 = "0.10"
 
 [[bench]]
 name = "compare_with_sha"
