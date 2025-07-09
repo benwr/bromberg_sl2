@@ -1,3 +1,5 @@
+// black_box is used throughout to prevent the compiler from optimizing anything out,
+// which it might otherwise do since the results are unused.
 use std::{hint::black_box, iter};
 
 use bromberg_sl2::*;

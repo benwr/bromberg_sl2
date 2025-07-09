@@ -32,7 +32,7 @@ impl ToBigUint for U256 {
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, PartialOrd, Ord)]
 pub struct HashMatrix(u128, u128, u128, u128);
 
-#[cfg(test)]
+#[cfg(test)] // This is only used for testing.
 impl HashMatrix {
     #[must_use]
     #[inline]
@@ -62,14 +62,15 @@ impl DigestString for HashMatrix {
 }
 
 impl DigestString for generic_array::GenericArray<u8, U64> {
-    /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
-    #[inline]
+    /// Produce a hex digest from a GenericArray digest. This will be 128 hex digits.
     fn to_hex(self) -> String {
-        let mut out = String::with_capacity(self.len() * 2);
+        let mut out = String::with_capacity(self.len() * 2); // 2 hex digits per byte
 
         for byte in self.iter() {
-            // The unwrap is safe because writing to a String never fails.
-            write!(&mut out, "{byte:02x}").unwrap();
+            write!(&mut out, "{byte:02x}").expect(
+                "Writing to a String can only fail if we're out of memory; \
+                with_capacity should have already triggered that panic",
+            );
         }
 
         out
@@ -90,10 +91,9 @@ impl Mul for HashMatrix {
     }
 }
 
+// Generator matrices for the hash function, taken from Bromberg et al.
 pub(crate) const A: HashMatrix = HashMatrix(1, 2, 0, 1);
-
 pub(crate) const B: HashMatrix = HashMatrix(1, 0, 2, 1);
-
 pub static I: HashMatrix = HashMatrix(1, 0, 0, 1);
 
 const SUCC_P: u128 = 1 << 127;
@@ -123,15 +123,17 @@ const fn mul(x: u128, y: u128) -> U256 {
 
 #[inline]
 const fn add(x: U256, y: U256) -> U256 {
-    // NOTE: x and y are guaranteed to be <=
-    // (2^127 - 2)^2 = 2^254 - 4 * 2^127 + 4,
-    // so I think we don't have to worry about carries out of here or overflows of the high word.
+    // NOTE: x and y are guaranteed to be <= (2^127 - 2)^2 = 2^254 - 4 * 2^127 +
+    // 4. This is because (apart from testing) we only call this function on the
+    // results of `mul`, which in turn always gets its args from entries in the
+    // matrix, which in turn are always calculcated mod P. Thus, I think we don't
+    // have to worry about carries out of here, or overflows of the high word.
     let (low, carry) = x.1.overflowing_add(y.1);
     let high = x.0 + y.0 + carry as u128;
     U256(high, low)
 }
 
-// algorithm as described by Dresdenboy in "Fast calculations
+// Algorithm as described by Dresdenboy in "Fast calculations
 // modulo small mersenne primes like M61" at
 // https://www.mersenneforum.org/showthread.php?t=1955
 // I tried using a handwritten version of this that avoided the U256s,
@@ -309,6 +311,8 @@ mod propertytests {
 
     quickcheck! {
         fn add_check(a: u128, b: u128, c: u128, d: u128) -> bool {
+            // take args mod P; all arguments to `mul` are matrix entries
+            // and thus reduced mod p.
             let res = add(mul(a % P, b % P), mul(c % P, d % P));
 
             let big_res = (a % P).to_biguint().unwrap() * (b % P).to_biguint().unwrap()
@@ -320,6 +324,8 @@ mod propertytests {
 
     quickcheck! {
         fn mod_p_check(a: u128, b: u128, c: u128, d: u128) -> bool {
+            // take args mod P; all arguments to `mul` are matrix entries
+            // and thus reduced mod p.
             let res = mod_p(add(mul(a % P, b % P), mul(c % P, d % P)));
 
             let big_res = (a.to_biguint().unwrap() * b.to_biguint().unwrap()

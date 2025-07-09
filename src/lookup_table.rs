@@ -3,6 +3,10 @@ use alloc::vec::Vec;
 use lazy_static::lazy_static;
 use seq_macro::seq;
 
+// The hash function is defined in terms of bit operations, corresponding to the
+// generator matrices A and B. But of course this would be very slow to do in
+// practice; here we generate 256-entry and 65536-entry lookup tables for all one-
+// and two-byte hashes
 const BIT_LOOKUPS: [HashMatrix; 2] = [B, A];
 
 const fn mul_from_byte(b: u8) -> HashMatrix {
@@ -31,7 +35,10 @@ const fn mul_from_byte(b: u8) -> HashMatrix {
 }
 
 const fn mul_from_wyde(d: u16) -> HashMatrix {
-    constmatmul(mul_from_byte((d >> 8) as u8), mul_from_byte(d as u8))
+    constmatmul(
+        mul_from_byte(((d & 0xff00) >> 8) as u8),
+        mul_from_byte((d & 0xff) as u8),
+    )
 }
 
 pub(crate) static BYTE_LOOKUPS: [HashMatrix; 256] = seq!(N in 0..256 {
