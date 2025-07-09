@@ -1,5 +1,5 @@
 use alloc::string::String;
-use core::fmt::Debug;
+use core::fmt::{Debug, Write};
 use core::ops::Mul;
 use digest::{consts::U64, generic_array};
 
@@ -65,10 +65,11 @@ impl DigestString for generic_array::GenericArray<u8, U64> {
     /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
     #[inline]
     fn to_hex(self) -> String {
-        let mut out = String::new();
+        let mut out = String::with_capacity(self.len() * 2);
 
         for byte in self.iter() {
-            out.push_str(&format!("{byte:02x}"));
+            // The unwrap is safe because writing to a String never fails.
+            write!(&mut out, "{byte:02x}").unwrap();
         }
 
         out

@@ -212,7 +212,7 @@ impl<T: BrombergHashable> BrombergHashable for alloc::rc::Rc<T> {
 
 impl Update for HashMatrix {
     fn update(&mut self, data: &[u8]) {
-        *self = *self * data.as_ref().bromberg_hash();
+        *self = *self * data.bromberg_hash();
     }
 }
 
