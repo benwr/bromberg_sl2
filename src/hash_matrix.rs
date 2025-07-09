@@ -32,6 +32,7 @@ impl ToBigUint for U256 {
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, PartialOrd, Ord)]
 pub struct HashMatrix(u128, u128, u128, u128);
 
+#[cfg(test)]
 impl HashMatrix {
     #[must_use]
     #[inline]
@@ -51,7 +52,6 @@ pub trait DigestString {
 
 impl DigestString for HashMatrix {
     /// Produce a hex digest of the hash. This will be a 128 hex digits.
-    #[must_use]
     #[inline]
     fn to_hex(self) -> String {
         format!(
@@ -63,13 +63,12 @@ impl DigestString for HashMatrix {
 
 impl DigestString for generic_array::GenericArray<u8, U64> {
     /// Produce a hex digest from a GenericArray digest. This will be a 128 hex digits.
-    #[must_use]
     #[inline]
     fn to_hex(self) -> String {
         let mut out = String::new();
 
         for byte in self.iter() {
-            out.push_str(&format!("{:02x}", byte));
+            out.push_str(&format!("{byte:02x}"));
         }
 
         out
@@ -90,20 +89,11 @@ impl Mul for HashMatrix {
     }
 }
 
-pub(crate) const A: HashMatrix = HashMatrix(
-    1, 2,
-    0, 1,
-);
+pub(crate) const A: HashMatrix = HashMatrix(1, 2, 0, 1);
 
-pub(crate) const B: HashMatrix = HashMatrix(
-    1, 0,
-    2, 1,
-);
+pub(crate) const B: HashMatrix = HashMatrix(1, 0, 2, 1);
 
-pub static I: HashMatrix = HashMatrix(
-    1, 0,
-    0, 1,
-);
+pub static I: HashMatrix = HashMatrix(1, 0, 0, 1);
 
 const SUCC_P: u128 = 1 << 127;
 const P: u128 = SUCC_P - 1;

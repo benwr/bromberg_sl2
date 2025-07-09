@@ -92,8 +92,7 @@ extern crate alloc;
 
 // Re-export digest traits
 pub use digest::{
-    self, generic_array::GenericArray, Digest, DynDigest, FixedOutput, FixedOutputDirty, Reset,
-    Update,
+    self, generic_array::GenericArray, Digest, DynDigest, FixedOutput, Reset, Update,
 };
 
 pub use crate::hash_matrix::{constmatmul, DigestString, HashMatrix};
@@ -113,7 +112,7 @@ pub fn hash(bytes: &[u8]) -> HashMatrix {
     let mut acc = I;
     for bs in bytes.chunks(2) {
         if bs.len() == 2 {
-            acc = acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))];
+            acc = acc * WYDE_LOOKUPS[((bs[0] as usize) << 8) | (bs[1] as usize)];
         } else {
             acc = acc * BYTE_LOOKUPS[bs[0] as usize];
         }
@@ -137,7 +136,7 @@ pub fn hash_par(bytes: &[u8]) -> HashMatrix {
             || I,
             |acc, bs| {
                 if bs.len() == 2 {
-                    acc * WYDE_LOOKUPS[(((bs[0] as usize) << 8) | (bs[1] as usize))]
+                    acc * WYDE_LOOKUPS[((bs[0] as usize) << 8) | (bs[1] as usize)]
                 } else {
                     acc * BYTE_LOOKUPS[bs[0] as usize]
                 }
@@ -212,7 +211,7 @@ impl<T: BrombergHashable> BrombergHashable for alloc::rc::Rc<T> {
 }
 
 impl Update for HashMatrix {
-    fn update(&mut self, data: impl AsRef<[u8]>) {
+    fn update(&mut self, data: &[u8]) {
         *self = *self * data.as_ref().bromberg_hash();
     }
 }
@@ -220,13 +219,5 @@ impl Update for HashMatrix {
 impl Reset for HashMatrix {
     fn reset(&mut self) {
         *self = I;
-    }
-}
-
-impl FixedOutputDirty for HashMatrix {
-    type OutputSize = digest::consts::U64;
-
-    fn finalize_into_dirty(&mut self, out: &mut GenericArray<u8, Self::OutputSize>) {
-        *out = self.generic_array_digest();
     }
 }
