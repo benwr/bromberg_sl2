@@ -1,7 +1,7 @@
-use std::iter;
+use std::{hint::black_box, iter};
 
 use bromberg_sl2::*;
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use sha3::{Digest, Sha3_512};
 
 // This isjust stolen straight from the Criterion documentation
@@ -51,7 +51,10 @@ fn from_elem(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("sha", size), size, |b, &size| {
             b.iter(|| {
                 let mut hasher = Sha3_512::new();
-                black_box(hasher.update(iter::repeat(5u8).take(size).collect::<Vec<u8>>()));
+                black_box(Digest::update(
+                    &mut hasher,
+                    iter::repeat(5u8).take(size).collect::<Vec<u8>>(),
+                ));
                 black_box(hasher.finalize());
             });
         });
